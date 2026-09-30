@@ -63,6 +63,11 @@
             <span class="head-tools">
               <span class="pick-count" data-count></span>
               <button type="button" class="ghost" data-pick="module">Cocher ce module</button>
+              <!-- Hors du formulaire de composition, qui ne peut pas en
+                   contenir un autre : le bouton vise le sien par form=. -->
+              <button type="submit" class="ghost danger-text"
+                      form="retrait-{{ module.key }}" data-delete
+                      title="Retirer ce sous-module du catalogue">Supprimer</button>
             </span>
           </summary>
 
@@ -108,6 +113,42 @@
     </fieldset>
     <button type="submit" class="primary">Créer la session</button>
   </form>
+
+  {% for chapter, modules in catalogue %}{% for module, niveaux in modules %}
+  {% if module.key in imported_keys %}
+  <form method="post" id="retrait-{{ module.key }}" hidden
+        action="{{ url_for('admin.delete_module', key=module.key) }}"
+        data-confirm="Supprimer le QCM « {{ module.title }} » et ses {{ module.keys|length }} questions ? Cette suppression est définitive."></form>
+  {% else %}
+  <form method="post" id="retrait-{{ module.key }}" hidden
+        action="{{ url_for('admin.delete_module', key=module.key) }}"
+        data-confirm="Retirer « {{ module.title }} » du catalogue ? Les sessions qui l'utilisent ne sont pas touchées, et le module pourra être rétabli."></form>
+  {% endif %}
+  {% endfor %}{% endfor %}
+
+  {% if hidden %}
+  <details class="qcm-format">
+    <summary>Modules retirés du catalogue ({{ hidden|length }})</summary>
+    <table class="table">
+      <thead><tr><th>Module</th><th>Chapitre</th><th>Retiré par</th><th></th></tr></thead>
+      <tbody>
+        {% for h in hidden %}
+        <tr>
+          <td>{{ h.title }}</td>
+          <td class="muted">{{ h.chapter }}</td>
+          <td class="muted">{{ h.by or '—' }}</td>
+          <td>
+            <form method="post" class="inline"
+                  action="{{ url_for('admin.restore_module', key=h.key) }}">
+              <button type="submit" class="ghost">Rétablir</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+  {% endif %}
 </div>
 
 <div class="card">
@@ -203,7 +244,7 @@
         <td>
           <form method="post" action="{{ url_for('admin.delete_qcm', key=q.key) }}"
                 class="inline"
-                onsubmit="return confirm('Supprimer « {{ q.title }} » et ses {{ q.questions }} questions ?');">
+                data-confirm="Supprimer le QCM « {{ q.title }} » et ses {{ q.questions }} questions ? Cette suppression est définitive.">
             <button type="submit" class="ghost danger-text">Supprimer</button>
           </form>
         </td>

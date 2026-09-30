@@ -190,16 +190,72 @@ def dashboard():
     )
     # Module puis niveau : l'enseignant choisit d'abord un sujet, ensuite
     # une difficulte, plutot que de lire dix-huit intitules d'affilee.
+    imported = [{"key": row["key"], "title": row["title"],
+                 "questions": len(questions), "source": row["source"],
+                 "imported_at": row["imported_at"]}
+                for row, questions in qcm.imported()]
+    hidden = hidden_modules()
     return render_template(
         "admin_dashboard.html", sessions=sessions,
-        catalogue=ex.catalogue(), levels=ex.LEVELS,
-        imported=[{"key": row["key"], "title": row["title"],
-                   "questions": len(questions), "source": row["source"],
-                   "imported_at": row["imported_at"]}
-                  for row, questions in qcm.imported()],
+        catalogue=ex.catalogue(hidden), levels=ex.LEVELS,
+        imported=imported,
+        imported_keys={q["key"] for q in imported},
+        hidden=[{"key": key, "title": ex.MODULE_BY_KEY[key].title,
+                 "chapter": ex.CHAPTER_OF[key].title,
+                 "by": row["hidden_by"]}
+                for key, row in hidden.items() if key in ex.MODULE_BY_KEY],
         notice=request.args.get("ok", ""),
         error=request.args.get("error", ""),
     )
+
+
+# --------------------------------------------------------------------------
+# Retrait des sous-modules du catalogue
+# --------------------------------------------------------------------------
+
+def hidden_modules():
+    """Modules livres que l'enseignant a retires : cle -> ligne.
+
+    Relu a chaque affichage, sans cache : plusieurs processus servent
+    l'application, et un retrait fait dans l'un doit se voir dans l'autre.
+    """
+    return {row["key"]: row for row in query(
+        "SELECT * FROM hidden_module ORDER BY hidden_at, key")}
+
+
+@bp.post("/modules/<key>/delete")
+@require_admin
+def delete_module(key):
+    """Retire un sous-module du catalogue, quel que soit son chapitre.
+
+    Un QCM importe est vraiment supprime, questions comprises. Un module
+    livre avec l'application vit dans le code : il est masque, et peut
+    etre retabli. Ses exercices restent connus, si bien que les sessions
+    qui les citent continuent de s'afficher.
+    """
+    if query("SELECT 1 FROM qcm_module WHERE key = ?", (key,), one=True):
+        return delete_qcm(key)
+    module = ex.MODULE_BY_KEY.get(key)
+    if module is None:
+        return redirect(url_for("admin.dashboard",
+                                error="Module introuvable."))
+    execute("""INSERT OR IGNORE INTO hidden_module (key, hidden_by, hidden_at)
+               VALUES (?, ?, ?)""", (key, who(), now()))
+    return redirect(url_for(
+        "admin.dashboard",
+        ok="« %s » retiré du catalogue. Il peut être rétabli en bas de la "
+           "composition." % module.title))
+
+
+@bp.post("/modules/<key>/restore")
+@require_admin
+def restore_module(key):
+    """Remet au catalogue un module livre qui en avait ete retire."""
+    execute("DELETE FROM hidden_module WHERE key = ?", (key,))
+    module = ex.MODULE_BY_KEY.get(key)
+    return redirect(url_for(
+        "admin.dashboard",
+        ok="« %s » rétabli." % (module.title if module else key)))
 
 
 # --------------------------------------------------------------------------
@@ -314,7 +370,9 @@ def api_pattern(key):
 def create_session():
     title = " ".join(request.form.get("title", "").split())[:120] \
         or "Session sans titre"
-    keys = [k for k in request.form.getlist("patterns") if k in ex.PATTERNS]
+    hidden = hidden_modules()
+    keys = [k for k in request.form.getlist("patterns")
+            if k in ex.PATTERNS and ex.module_of(k).key not in hidden]
     # Le formulaire arrive tout decoche : prendre le catalogue entier en
     # silence donnerait une epreuve de cinquante exercices a qui a oublie
     # de cocher. On redemande.

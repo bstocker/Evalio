@@ -1073,6 +1073,82 @@ class QcmTest(unittest.TestCase):
         self.assertIn("introuvable",
                       self.refusal(self.admin.post("/admin/qcm/néant/delete")))
 
+    # -- retrait depuis le catalogue ---------------------------------------
+
+    def test_every_sub_module_offers_a_delete_button(self):
+        self.upload()
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        for module in ex.MODULES:
+            self.assertIn('form="retrait-%s"' % module.key, html)
+            self.assertIn('id="retrait-%s"' % module.key, html)
+
+    def test_an_imported_qcm_is_deleted_from_the_catalogue(self):
+        self.upload()
+        resp = self.admin.post("/admin/modules/git-les-bases/delete")
+        self.assertIn("ok=", resp.headers["Location"])
+        self.assertNotIn("git-les-bases", [m.key for m in ex.MODULES])
+        with self.app.app_context():
+            self.assertEqual(qcm.imported(), [])
+
+    def test_an_imported_qcm_in_use_is_still_refused(self):
+        self.upload()
+        self.session_on(ex.MODULE_BY_KEY["git-les-bases"].keys)
+        message = self.refusal(self.admin.post("/admin/modules/git-les-bases/delete"))
+        self.assertIn("TP QCM", message)
+
+    def test_a_shipped_module_is_hidden_then_restored(self):
+        module = ex.MODULES[0]
+        cle = module.keys[0]
+        resp = self.admin.post("/admin/modules/%s/delete" % module.key)
+        self.assertIn("ok=", resp.headers["Location"])
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertNotIn('id="pick-%s"' % cle, html)
+        self.assertIn("Rétablir", html)
+        # Le code ne bouge pas : l'exercice reste connu du registre.
+        self.assertIn(cle, ex.PATTERNS)
+
+        self.admin.post("/admin/modules/%s/restore" % module.key)
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertIn('id="pick-%s"' % cle, html)
+        self.assertNotIn("Rétablir", html)
+
+    def test_a_hidden_module_leaves_its_sessions_intact(self):
+        module = ex.MODULE_BY_KEY["qcm_docker"]
+        session_id, client = self.session_on(module.keys[:2])
+        self.admin.post("/admin/modules/qcm_docker/delete")
+        self.assertEqual(self.admin.get("/admin/sessions/%d" % session_id)
+                         .status_code, 200)
+        self.assertEqual(client.get("/api/task/%s" % module.keys[0])
+                         .status_code, 200)
+        self.assertEqual(self.admin.get("/admin/api/sessions/%d/live"
+                                        % session_id).status_code, 200)
+
+    def test_a_hidden_module_cannot_be_put_in_a_new_session(self):
+        module = ex.MODULE_BY_KEY["qcm_docker"]
+        self.admin.post("/admin/modules/qcm_docker/delete")
+        resp = self.admin.post("/admin/sessions",
+                               data={"title": "X", "patterns": list(module.keys)})
+        self.assertIn("error=", resp.headers["Location"])
+
+    def test_a_chapter_emptied_of_its_modules_disappears(self):
+        for module in ex.CHAPTER_OF["qcm_docker"].modules:
+            self.admin.post("/admin/modules/%s/delete" % module.key)
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertNotIn('data-chapter="qcm"', html)
+
+    def test_deleting_an_unknown_sub_module_says_so(self):
+        self.assertIn("introuvable",
+                      self.refusal(self.admin.post("/admin/modules/néant/delete")))
+
+    def test_removing_a_module_requires_an_admin_session(self):
+        anon = self.app.test_client()
+        self.assertEqual(anon.post("/admin/modules/qcm_docker/delete")
+                         .status_code, 302)
+        self.assertEqual(anon.post("/admin/modules/qcm_docker/restore")
+                         .status_code, 302)
+        self.assertIn('id="pick-%s"' % ex.MODULE_BY_KEY["qcm_docker"].keys[0],
+                      self.admin.get("/admin/").get_data(as_text=True))
+
     # -- côté élève --------------------------------------------------------
 
     def test_a_student_answers_a_question(self):

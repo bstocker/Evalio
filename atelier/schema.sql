@@ -96,6 +96,16 @@ CREATE TABLE IF NOT EXISTS qcm_question (
     explanation TEXT    NOT NULL DEFAULT ''
 );
 
+-- Modules livres avec l'application que l'enseignant a retires du
+-- catalogue. Ils vivent dans le code : on ne peut que les masquer. Leurs
+-- exercices restent au registre, pour que les copies qui les citent
+-- s'affichent toujours ; ils ne sont plus proposes a la composition.
+CREATE TABLE IF NOT EXISTS hidden_module (
+    key        TEXT PRIMARY KEY,
+    hidden_by  TEXT NOT NULL DEFAULT '',
+    hidden_at  TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_qcm_question_module
     ON qcm_question(module_id, position);
 

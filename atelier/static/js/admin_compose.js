@@ -64,6 +64,25 @@
       + (20 / n >= 2 ? "s" : "") + " chacun";
   }
 
+  // Suppression d'un sous-module. Le bouton vit dans un <summary> : on
+  // retient le clic, qui replierait le module, et on soumet a la main
+  // apres confirmation.
+  form.addEventListener("click", function (event) {
+    var button = event.target.closest && event.target.closest("[data-delete]");
+    if (!button) return;
+    event.preventDefault();
+    var target = document.getElementById(button.getAttribute("form"));
+    if (target && window.confirm(target.getAttribute("data-confirm"))) {
+      target.submit();
+    }
+  });
+
+  // Les autres formulaires de retrait portent leur question en data-confirm.
+  document.addEventListener("submit", function (event) {
+    var question = event.target.getAttribute("data-confirm");
+    if (question && !window.confirm(question)) event.preventDefault();
+  });
+
   form.addEventListener("click", function (event) {
     var pick = event.target.getAttribute && event.target.getAttribute("data-pick");
     if (!pick) return;

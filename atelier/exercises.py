@@ -144,15 +144,18 @@ def modules_for(pattern_keys):
     return [m for m in MODULES if m.key in present]
 
 
-def catalogue():
+def catalogue(hidden=()):
     """Le catalogue tel que l'enseignant le compose.
 
     Rend une liste de (chapitre, [(module, [(niveau, libellé, exercices)])]).
+    Les modules de `hidden` sont omis, et un chapitre qu'ils vident avec.
     """
     out = []
     for chapter in CHAPTERS:
         modules = []
         for module in chapter.modules:
+            if module.key in hidden:
+                continue
             niveaux = []
             for level in sorted(LEVELS):
                 motifs = [PATTERNS[k] for k in module.keys
@@ -160,5 +163,6 @@ def catalogue():
                 if motifs:
                     niveaux.append((level, LEVELS[level], motifs))
             modules.append((module, niveaux))
-        out.append((chapter, modules))
+        if modules:
+            out.append((chapter, modules))
     return out
