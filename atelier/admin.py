@@ -190,17 +190,13 @@ def dashboard():
     )
     # Module puis niveau : l'enseignant choisit d'abord un sujet, ensuite
     # une difficulte, plutot que de lire dix-huit intitules d'affilee.
-    imported = [{"key": row["key"], "title": row["title"],
-                 "questions": len(questions), "source": row["source"],
-                 "imported_at": row["imported_at"]}
-                for row, questions in qcm.imported()]
     hidden = hidden_modules()
     return render_template(
         "admin_dashboard.html", sessions=sessions,
         catalogue=ex.catalogue(hidden), levels=ex.LEVELS,
         qcm_key=ex.QCM_CHAPTER_KEY,
-        imported=imported,
-        imported_keys={q["key"] for q in imported},
+        # Un QCM importe se supprime vraiment : sa confirmation le dit.
+        imported_keys={row["key"] for row, _questions in qcm.imported()},
         hidden=[{"key": key, "title": ex.MODULE_BY_KEY[key].title,
                  "chapter": ex.CHAPTER_OF[key].title,
                  "by": row["hidden_by"]}
