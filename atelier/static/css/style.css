@@ -617,8 +617,6 @@ details[open] > .module-head::before { transform: rotate(90deg); }
 .notice.ok-notice {
   margin-top: 0; background: var(--good-bg); border-color: var(--good);
 }
-.picker { display: flex; gap: .4rem; margin-bottom: .9rem; }
-.picker .ghost { padding: .3rem .6rem; font-size: .8rem; }
 #tally { display: block; margin-top: .2rem; color: var(--text-secondary); }
 
 /* Lien de session */

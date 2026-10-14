@@ -89,18 +89,14 @@
     // Ces boutons vivent dans un <summary> : sans cela, cocher un module
     // le replierait dans le meme geste.
     event.preventDefault();
-    if (pick === "level" || pick === "module" || pick === "chapter") {
-      var scope = event.target.closest("." + (pick === "level" ? "level-group"
-                                            : pick === "module" ? "module"
-                                            : "chapter"));
-      var inScope = Array.prototype.slice.call(
-        scope.querySelectorAll("input[name=patterns]"));
-      // Bascule : si tout est deja coche, on decoche.
-      var allOn = inScope.every(function (b) { return b.checked; });
-      inScope.forEach(function (b) { b.checked = !allOn; });
-    } else {
-      boxes.forEach(function (b) { b.checked = pick === "all"; });
-    }
+    var scope = event.target.closest("." + (pick === "level" ? "level-group"
+                                          : pick === "module" ? "module"
+                                          : "chapter"));
+    var inScope = Array.prototype.slice.call(
+      scope.querySelectorAll("input[name=patterns]"));
+    // Bascule : si tout est deja coche, on decoche.
+    var allOn = inScope.every(function (b) { return b.checked; });
+    inScope.forEach(function (b) { b.checked = !allOn; });
     refresh();
   });
 

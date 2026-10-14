@@ -102,27 +102,22 @@
       </label>
     </div>
     <fieldset>
-      <legend>Exercices de l'épreuve</legend>
+      <legend>Choix de l'exercice</legend>
       <p class="hint">
         La note sur 20 est répartie à parts égales entre les exercices retenus.
         <span id="tally"></span>
-      </p>
-      <p class="picker">
-        <button type="button" class="ghost" data-pick="all">Tout cocher</button>
-        <button type="button" class="ghost" data-pick="none">Tout décocher</button>
       </p>
 
       {% set exercices = catalogue|rejectattr('0.key', 'equalto', qcm_key)|list %}
       {% if exercices %}
       <!-- Les chapitres d'exercices sous un meme pli, a cote du chapitre QCM.
-           La classe chapter lui donne le compte et le bouton de ses plis. -->
+           La classe chapter lui donne le compte de ses exercices coches. -->
       <details class="chapter section" data-chapter="exercices" open>
         <summary class="chapter-head">
           <h2 class="chapter-title">Exercices</h2>
           <span class="hint">Programmation, système, réseau : à compléter, prédire ou corriger.</span>
           <span class="head-tools">
             <span class="pick-count" data-count></span>
-            <button type="button" class="ghost" data-pick="chapter">Cocher cette section</button>
           </span>
         </summary>
         {% for chapter, modules in exercices %}{{ chapter_fold(chapter, modules) }}{% endfor %}

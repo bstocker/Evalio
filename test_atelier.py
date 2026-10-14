@@ -570,11 +570,11 @@ class AtelierTest(unittest.TestCase):
         self.assertIn('data-level="1"', html)
 
     def test_the_composition_wraps_exercise_chapters_in_one_section(self):
-        """Exercices de l'épreuve : un pli Exercices, puis le chapitre QCM."""
+        """Choix de l'exercice : un pli Exercices, puis le chapitre QCM."""
         html = self.admin.get("/admin/").get_data(as_text=True)
         start = html.index('data-chapter="exercices"')
         qcm_fold = html.index('data-chapter="%s"' % ex.QCM_CHAPTER_KEY)
-        self.assertLess(html.index("Exercices de l'épreuve"), start)
+        self.assertLess(html.index("Choix de l'exercice"), start)
         self.assertLess(start, qcm_fold)
         for chapter in ex.CHAPTERS:
             if chapter.key == ex.QCM_CHAPTER_KEY:
