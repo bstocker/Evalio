@@ -2941,6 +2941,13 @@ class GenerationTest(unittest.TestCase):
         self.assertEqual(self.send().status_code, 404)
         self.assertEqual(self.issues, [])
 
+    def test_documents_can_be_chosen_in_several_goes(self):
+        """Le champ fichier remplace sa sélection : un script la cumule."""
+        html = self.admin.get("/admin/demandes").get_data(as_text=True)
+        self.assertIn('id="doc-list"', html)
+        self.assertIn("js/admin_requests.js", html)
+        self.assertIn('data-max-files="%d"' % generation.MAX_FILES, html)
+
     def test_the_page_requires_a_teacher(self):
         resp = self.app.test_client().get("/admin/demandes")
         self.assertEqual(resp.status_code, 302)

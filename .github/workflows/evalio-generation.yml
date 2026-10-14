@@ -97,6 +97,40 @@ jobs:
           git config user.name "evalio-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Check Anthropic API key
+        # Un appel minuscule avant le vrai travail : une cle absente,
+        # refusee ou sans credit se dit ici en clair, au lieu d'un echec
+        # muet de l'etape suivante.
+        shell: bash
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+            echo "::error::Secret ANTHROPIC_API_KEY manquant."
+            exit 1
+          fi
+          resp="$(mktemp)"
+          status="$(curl -sS -o "$resp" -w '%{http_code}' \
+            https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d '{"model": "claude-haiku-5-5", "max_tokens": 1, "messages": [{"role": "user", "content": "ok"}]}')"
+          if [[ "$status" != "200" ]]; then
+            echo "::error::La cle API Anthropic est refusee (HTTP ${status})."
+            case "$status" in
+              401) echo "Cle invalide : verifiez le secret ANTHROPIC_API_KEY (sans espace ni retour a la ligne)." ;;
+              400) echo "Souvent un credit epuise : verifiez Billing dans la console Anthropic." ;;
+              403) echo "Cle sans droit d'acces : verifiez son espace de travail dans la console Anthropic." ;;
+              429) echo "Limite de debit atteinte : relancez plus tard." ;;
+            esac
+            # Le message de l'API, sans la cle : il dit precisement ce qui coince.
+            grep -o '"message":"[^"]*"' "$resp" || true
+            exit 1
+          fi
+          echo "Cle API Anthropic acceptee."
+
       - name: Claude Code
         uses: anthropics/claude-code-action@v1
         env:
@@ -132,10 +166,12 @@ jobs:
             sujet hors de portée du moteur, tests impossibles à faire passer),
             n'ouvre pas de PR : explique pourquoi en commentant l'issue avec
             `gh issue comment`.
+          # Les guillemets sont indispensables : sans eux, la liste est
+          # coupee aux espaces de `Bash(git status:*)` et devient illisible.
           claude_args: |
             --model claude-opus-5-5
             --max-turns 120
-            --allowedTools Read,Write,Edit,Glob,Grep,Bash(python:*),Bash(python3:*),Bash(gcc:*),Bash(./a.out:*),Bash(ls:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git switch:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin evalio/demande-:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*)
+            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python:*),Bash(python3:*),Bash(gcc:*),Bash(./a.out:*),Bash(ls:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git switch:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin evalio/demande-:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*)"
 
       - name: Delete documents
         # Toujours, que le travail ait reussi ou non : les documents ne

@@ -72,12 +72,15 @@
     </label>
 
     <label>Documents
-      <input type="file" name="documents" multiple required accept="{{ accept }}">
+      <input type="file" name="documents" multiple required accept="{{ accept }}"
+             data-max-files="{{ max_files }}">
       <span class="hint">{{ max_files }} fichiers et {{ max_mb }} Mo au plus :
         PDF, Word, PowerPoint, images, texte, code… Ils ne servent qu'à
         construire les exercices et sont supprimés dès la fin du travail, au
-        plus tard {{ retention }} jours après le dépôt.</span>
+        plus tard {{ retention }} jours après le dépôt. Vous pouvez les
+        ajouter en plusieurs fois.</span>
     </label>
+    <ul id="doc-list" class="doc-list" aria-live="polite" hidden></ul>
 
     <button type="submit" class="primary">Envoyer la demande</button>
   </form>
@@ -120,4 +123,8 @@
   <p class="muted">Aucune demande pour l'instant.</p>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_requests.js') }}"></script>
 {% endblock %}

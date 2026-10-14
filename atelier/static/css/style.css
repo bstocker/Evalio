@@ -765,3 +765,10 @@ details[open] > .module-head::before { transform: rotate(90deg); }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* Demande d'exercices : les documents retenus, cumules au fil des choix */
+.doc-list { list-style: none; margin: -.4rem 0 0; padding: 0; display: grid; gap: .3rem; }
+.doc-list li { display: flex; align-items: center; gap: .2rem; flex-wrap: wrap;
+               padding: .35rem .6rem; border-radius: 8px; background: var(--surface-0); }
+.doc-list .ghost { margin-left: auto; padding: .2rem .55rem; font-size: .8rem; }
+.doc-list[hidden] { display: none; }
