@@ -195,17 +195,10 @@ def dashboard():
                  "imported_at": row["imported_at"]}
                 for row, questions in qcm.imported()]
     hidden = hidden_modules()
-    catalogue = ex.catalogue(hidden)
-    # Les series livrees avec l'application, hors QCM qui a sa propre carte.
-    series = [{"title": module.title, "chapter": chapter.title,
-               "level": module.level, "exercises": len(module.keys)}
-              for chapter, modules in catalogue
-              if chapter.key != ex.QCM_CHAPTER_KEY
-              for module, _niveaux in modules]
     return render_template(
         "admin_dashboard.html", sessions=sessions,
-        catalogue=catalogue, levels=ex.LEVELS,
-        qcm_key=ex.QCM_CHAPTER_KEY, series=series,
+        catalogue=ex.catalogue(hidden), levels=ex.LEVELS,
+        qcm_key=ex.QCM_CHAPTER_KEY,
         imported=imported,
         imported_keys={q["key"] for q in imported},
         hidden=[{"key": key, "title": ex.MODULE_BY_KEY[key].title,

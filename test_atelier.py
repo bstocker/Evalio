@@ -569,19 +569,6 @@ class AtelierTest(unittest.TestCase):
             self.assertIn(label, html)
         self.assertIn('data-level="1"', html)
 
-    def test_the_dashboard_lists_exercise_series_apart_from_qcm(self):
-        """La carte Exercices liste les séries livrées, sans les QCM."""
-        html = self.admin.get("/admin/").get_data(as_text=True)
-        start = html.index('<div class="card" id="exercices">')
-        card = html[start:html.index('<div class="card" id="qcm">', start)]
-        for chapter in ex.CHAPTERS:
-            for module in chapter.modules:
-                with self.subTest(module=module.key):
-                    if chapter.key == ex.QCM_CHAPTER_KEY:
-                        self.assertNotIn(str(escape(module.title)), card)
-                    else:
-                        self.assertIn(str(escape(module.title)), card)
-
     def test_the_composition_wraps_exercise_chapters_in_one_section(self):
         """Exercices de l'épreuve : un pli Exercices, puis le chapitre QCM."""
         html = self.admin.get("/admin/").get_data(as_text=True)
@@ -596,13 +583,6 @@ class AtelierTest(unittest.TestCase):
                 fold = html.index('data-chapter="%s"' % chapter.key)
                 self.assertLess(start, fold)
                 self.assertLess(fold, qcm_fold)
-
-    def test_a_hidden_series_leaves_the_exercise_card(self):
-        self.admin.post("/admin/modules/boucles/delete")
-        html = self.admin.get("/admin/").get_data(as_text=True)
-        start = html.index('<div class="card" id="exercices">')
-        card = html[start:html.index('<div class="card" id="qcm">', start)]
-        self.assertNotIn(str(escape(ex.MODULE_BY_KEY["boucles"].title)), card)
 
     def test_the_catalogue_folds_by_chapter_and_module(self):
         """Le catalogue se parcourt plié : chapitre ouvert, modules repliés."""
