@@ -58,6 +58,14 @@ def create_app(config=None):
         ADMIN_USER=os.environ.get("ATELIER_ADMIN_USER", "admin"),
         ADMIN_PASSWORD=os.environ.get("ATELIER_ADMIN_PASSWORD", "atelier"),
         TRUST_PROXY=os.environ.get("ATELIER_TRUST_PROXY", "1") != "0",
+        # Demandes d'exercices (atelier/generation.py). Facultatives : sans
+        # ces trois reglages, la page explique comment les poser.
+        GITHUB_TOKEN=os.environ.get("ATELIER_GITHUB_TOKEN", ""),
+        GITHUB_REPO=os.environ.get("ATELIER_GITHUB_REPO", ""),
+        DOCS_KEY=os.environ.get("ATELIER_DOCS_KEY", ""),
+        REQUESTS_DIR=os.path.join(app.instance_path, "demandes"),
+        # Borne tout envoi, documents d'une demande comme classeur de QCM.
+        MAX_CONTENT_LENGTH=32 * 1024 * 1024,
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_HTTPONLY=True,
         JSON_SORT_KEYS=False,
@@ -84,9 +92,10 @@ def create_app(config=None):
     db.init_db(app)
     app.teardown_appcontext(db.close_db)
 
-    from . import admin, qcm, student
+    from . import admin, generation, qcm, student
     app.register_blueprint(student.bp)
     app.register_blueprint(admin.bp)
+    app.register_blueprint(generation.bp)
 
     # Les modules de QCM importes vivent dans la base, pas dans le code.
     # Plusieurs processus servent l'application : chacun doit voir l'import

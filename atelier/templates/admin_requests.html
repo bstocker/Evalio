@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Demandes d'exercices{% endblock %}
+{% block main_class %}wrap wide{% endblock %}
+{% block topbar %}{% include "_admin_nav.html" %}{% endblock %}
+{% block content %}
+{% if notice %}<p class="notice ok-notice">{{ notice }}</p>{% endif %}
+{% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+
+<div class="card">
+  <h1>Demander des exercices</h1>
+  <p class="muted">Décrivez les exercices voulus et déposez les documents qui
+     doivent les inspirer. Une issue s'ouvre sur le dépôt GitHub&nbsp;; Claude
+     Code y écrit le module, lance les tests et propose une
+     <strong>pull request</strong>. Les exercices n'arrivent dans le catalogue
+     qu'une fois cette PR relue et fusionnée.</p>
+
+  {% if enabled %}
+  <form method="post" enctype="multipart/form-data" class="stack">
+    <div class="form-row">
+      <label class="grow">Intitulé du module
+        <input name="title" maxlength="120" required
+               value="{{ form.get('title', '') }}"
+               placeholder="Les pointeurs : premiers pas">
+      </label>
+      <label>Nombre d'exercices
+        <input name="quantity" type="number" min="1" max="{{ max_quantity }}"
+               value="{{ form.get('quantity', '6') }}" required>
+      </label>
+    </div>
+
+    <fieldset>
+      <legend>Nature des exercices</legend>
+      <div class="checks">
+        {% for key, label, hint in kinds %}
+        <label class="switch">
+          <input type="checkbox" name="kinds" value="{{ key }}"
+                 {% if key in checked_kinds %}checked{% endif %}>
+          <span><strong>{{ label }}</strong><span class="hint">{{ hint }}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Rangement</legend>
+      <div class="stack">
+        <label class="switch">
+          <input type="radio" name="placement" value="existing"
+                 {% if form.get('placement', 'existing') != 'new' %}checked{% endif %}>
+          <span><strong>Dans un chapitre existant</strong>
+            <select name="chapter_key" aria-label="Chapitre existant">
+              {% for c in chapters %}
+              <option value="{{ c.key }}" {% if form.get('chapter_key') == c.key %}selected{% endif %}>{{ c.title }}</option>
+              {% endfor %}
+            </select>
+          </span>
+        </label>
+        <label class="switch">
+          <input type="radio" name="placement" value="new"
+                 {% if form.get('placement') == 'new' %}checked{% endif %}>
+          <span><strong>Dans un nouveau chapitre</strong>
+            <input name="new_chapter" maxlength="120" aria-label="Titre du nouveau chapitre"
+                   value="{{ form.get('new_chapter', '') }}" placeholder="Python">
+          </span>
+        </label>
+      </div>
+    </fieldset>
+
+    <label>Consignes <span class="hint">facultatif : niveau visé, points à
+        insister, ce qu'il faut éviter</span>
+      <textarea name="instructions" rows="4" maxlength="2000">{{ form.get('instructions', '') }}</textarea>
+    </label>
+
+    <label>Documents
+      <input type="file" name="documents" multiple required accept="{{ accept }}">
+      <span class="hint">{{ max_files }} fichiers et {{ max_mb }} Mo au plus :
+        PDF, Word, PowerPoint, images, texte, code… Ils ne servent qu'à
+        construire les exercices et sont supprimés dès la fin du travail, au
+        plus tard {{ retention }} jours après le dépôt.</span>
+    </label>
+
+    <button type="submit" class="primary">Envoyer la demande</button>
+  </form>
+  {% else %}
+  <p class="alert">La fonctionnalité n'est pas configurée. Elle demande trois
+     secrets GitHub de plus&nbsp;: <span class="mono">ATELIER_GITHUB_TOKEN</span>,
+     <span class="mono">ATELIER_DOCS_KEY</span> et, pour l'Action,
+     <span class="mono">ANTHROPIC_API_KEY</span>. Le README détaille chacun
+     (« Les demandes d'exercices »).</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h1>Demandes envoyées</h1>
+  {% if rows %}
+  <div class="tablewrap">
+    <table class="table">
+      <thead><tr><th>Module</th><th>Exercices</th><th>Par</th><th>Le</th>
+                 <th>Issue</th><th>Documents</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="strong">{{ r['title'] }}</td>
+          <td>{{ r['quantity'] }} ·
+              <span class="muted">{% for k in loads(r['kinds']) %}{{ kind_labels[k] }}{% if not loop.last %}, {% endif %}{% endfor %}</span></td>
+          <td class="muted">{{ r['created_by'] or '—' }}</td>
+          <td class="mono">{{ r['created_at'][:16]|replace('T', ' ') }}</td>
+          <td>{% if r['issue_url'] %}<a href="{{ r['issue_url'] }}" target="_blank" rel="noopener">n°{{ r['issue_number'] }}</a>{% else %}—{% endif %}</td>
+          <td>
+            {% if r['purged_at'] %}<span class="pill">supprimés</span>
+            {% elif r['fetched_at'] %}<span class="pill ok">récupérés</span>
+            {% else %}<span class="pill">en attente</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Aucune demande pour l'instant.</p>
+  {% endif %}
+</div>
+{% endblock %}

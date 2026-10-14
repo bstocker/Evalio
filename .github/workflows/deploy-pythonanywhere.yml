@@ -34,6 +34,14 @@ jobs:
       ATELIER_ADMIN_PASSWORD: ${{ secrets.ATELIER_ADMIN_PASSWORD }}
       ATELIER_DATABASE: ${{ secrets.ATELIER_DATABASE }}
 
+      # --- Demandes d'exercices (facultatives) ---
+      # Sans ces deux secrets, la page « Demandes d'exercices » explique
+      # comment les poser, et le reste de l'application ignore leur absence.
+      ATELIER_GITHUB_TOKEN: ${{ secrets.ATELIER_GITHUB_TOKEN }}
+      ATELIER_DOCS_KEY: ${{ secrets.ATELIER_DOCS_KEY }}
+      # Le depot qui recoit les issues : celui-ci, quel que soit le fork.
+      ATELIER_GITHUB_REPO: ${{ github.repository }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -68,7 +76,8 @@ jobs:
           fi
 
           # A newline inside a secret would split the .env into a broken line.
-          for name in ATELIER_SECRET_KEY ATELIER_ADMIN_USER ATELIER_ADMIN_PASSWORD ATELIER_DATABASE; do
+          for name in ATELIER_SECRET_KEY ATELIER_ADMIN_USER ATELIER_ADMIN_PASSWORD ATELIER_DATABASE \
+                      ATELIER_GITHUB_TOKEN ATELIER_DOCS_KEY; do
             if [[ "${!name:-}" == *$'\n'* ]]; then
               echo "::error::${name} contient un retour a la ligne. Recreez ce secret sur une seule ligne."
               exit 1
@@ -83,6 +92,16 @@ jobs:
           if [[ "$ATELIER_SECRET_KEY" == "dev-only-change-me" ]]; then
             echo "::error::ATELIER_SECRET_KEY vaut la valeur par defaut du code, qui est publique. Generez-en une."
             exit 1
+          fi
+
+          if [[ -n "${ATELIER_DOCS_KEY:-}" ]] && (( ${#ATELIER_DOCS_KEY} < 32 )); then
+            echo "::error::ATELIER_DOCS_KEY fait ${#ATELIER_DOCS_KEY} caracteres : 32 au moins, elle protege les documents des enseignants."
+            echo "Generez-en une avec : python3 -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            exit 1
+          fi
+          if [[ -n "${ATELIER_GITHUB_TOKEN:-}" && -z "${ATELIER_DOCS_KEY:-}" ]] \
+             || [[ -z "${ATELIER_GITHUB_TOKEN:-}" && -n "${ATELIER_DOCS_KEY:-}" ]]; then
+            echo "::warning::Demandes d'exercices : ATELIER_GITHUB_TOKEN et ATELIER_DOCS_KEY vont ensemble. Avec un seul des deux, la fonctionnalite reste desactivee."
           fi
 
           # Resolved once, reused by the steps below.
@@ -183,9 +202,18 @@ jobs:
             if [[ -n "${ATELIER_DATABASE:-}" ]]; then
               echo "ATELIER_DATABASE=${ATELIER_DATABASE}"
             fi
+            if [[ -n "${ATELIER_GITHUB_TOKEN:-}" && -n "${ATELIER_DOCS_KEY:-}" ]]; then
+              echo "ATELIER_GITHUB_TOKEN=${ATELIER_GITHUB_TOKEN}"
+              echo "ATELIER_DOCS_KEY=${ATELIER_DOCS_KEY}"
+              echo "ATELIER_GITHUB_REPO=${ATELIER_GITHUB_REPO}"
+            fi
           } > "$ENV_FILE"
 
-          echo " - .env (${ATELIER_DATABASE:+ATELIER_DATABASE, }ATELIER_SECRET_KEY, ATELIER_ADMIN_USER, ATELIER_ADMIN_PASSWORD) -> ${PA_DIR}/.env"
+          demandes=""
+          if [[ -n "${ATELIER_GITHUB_TOKEN:-}" && -n "${ATELIER_DOCS_KEY:-}" ]]; then
+            demandes=", ATELIER_GITHUB_TOKEN, ATELIER_DOCS_KEY, ATELIER_GITHUB_REPO"
+          fi
+          echo " - .env (${ATELIER_DATABASE:+ATELIER_DATABASE, }ATELIER_SECRET_KEY, ATELIER_ADMIN_USER, ATELIER_ADMIN_PASSWORD${demandes}) -> ${PA_DIR}/.env"
 
           pa_post \
             "https://${PA_API_HOST}/api/v0/user/${PA_USERNAME}/files/path${PA_DIR}/.env" \

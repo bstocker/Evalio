@@ -71,6 +71,8 @@ Les trois suivants **configurent l'application** elle-même. Le rôle de chacun 
 **ATELIER_ADMIN_USER** = votre identifiant administrateur.  
 **ATELIER_ADMIN_PASSWORD** = votre mot de passe administrateur.  
 
+Trois secrets **facultatifs** activent les demandes d'exercices écrits par Claude Code : voir **Les demandes d'exercices**.
+
 💡 Le workflow refuse de déployer tant qu'un de ces 7 secrets manque, est vide ou est mal formé. Il vous dira lequel et pourquoi, dans le log de l'Action. **Créez-les tous les 7 maintenant**, sinon votre premier déploiement échouera.
   
 **Dernière étape :** Pour engager l'automatisation de votre première Action, vous devez cliquer sur le gros boutton vert dans l'onglet supérieur [Actions] dans votre Repository Github. Le boutton s'intitule "I understand my workflows, go ahead and enable them"   
@@ -341,6 +343,40 @@ Le plus simple pour s'en assurer après un déploiement : cliquer sur **Téléch
 Dans la base — tables `qcm_module` et `qcm_question` — et non dans le code : un fichier déposé sur PythonAnywhere serait écrasé au déploiement suivant.
 
 Plusieurs processus servent l'application, et un import fait dans l'un doit être vu par les autres. `qcm.sync()` compare donc à chaque requête une **empreinte** de la base (nombre de modules, nombre de questions, dernier identifiant) au catalogue chargé, et ne rebâtit le registre que lorsqu'elle a changé. Le cas courant ne coûte qu'une requête.
+
+### Les demandes d'exercices
+
+La page **Demandes d'exercices** de l'espace enseignant fait écrire des exercices à partir de vos documents de cours. Vous choisissez le nombre d'exercices, leur nature (compléter, prédire, trouver le bug, QCM) et leur rangement (un chapitre existant ou un nouveau), vous déposez vos documents (PDF, Word, PowerPoint, images, texte, code…) et vous envoyez.
+
+L'application n'écrit rien elle-même. Elle ouvre une **issue** sur votre dépôt GitHub ; une Action (`.github/workflows/evalio-generation.yml`) y répond : elle télécharge les documents, laisse **Claude Code** écrire le module comme les autres, vérifier les sorties en exécutant le code, lancer les tests, puis ouvrir une **pull request**. Les exercices n'arrivent en production que lorsque vous fusionnez cette PR : le déploiement habituel prend alors le relais.
+
+```mermaid
+flowchart LR
+  A[Formulaire + documents] --> B[Issue GitHub]
+  B --> C[Action : Claude Code]
+  C --> D[Pull request]
+  D -->|relue et fusionnée| E[Déploiement]
+  C -.->|fin du travail| F[Documents supprimés]
+```
+
+**Les documents ne quittent le serveur que pour l'Action.** Le dépôt est public, et l'issue avec lui : elle ne porte que la demande et son numéro, jamais les documents ni de lien vers eux. L'Action les télécharge avec une clé partagée, `ATELIER_DOCS_KEY`, connue d'elle et de l'application seules — Claude Code, qui lit des documents non fiables, ne la voit pas. Les documents sont supprimés du serveur à la fin du travail, réussi ou non, et au plus tard **7 jours** après le dépôt.
+
+#### Mise en place
+
+La fonctionnalité est facultative : sans les réglages ci-dessous, la page explique ce qui manque et le reste de l'application fonctionne comme avant.
+
+1. **Trois secrets de plus**, dans *Settings → Secrets and variables → Actions* :
+   - **ANTHROPIC_API_KEY** : votre clé API Anthropic, utilisée par l'Action seule.
+   - **ATELIER_DOCS_KEY** : une chaîne aléatoire de 32 caractères au moins (`python3 -c "import secrets; print(secrets.token_urlsafe(32))"`).
+   - **ATELIER_GITHUB_TOKEN** : un *fine-grained personal access token* (*Settings* de votre compte → *Developer settings*), limité **à ce seul dépôt**, avec la seule permission **Issues : Read and write**. L'application s'en sert pour ouvrir l'issue ; c'est parce que l'issue est ouverte en votre nom que l'Action accepte de la traiter.
+2. **L'application GitHub de Claude** installée sur le dépôt : le plus simple est de lancer `/install-github-app` depuis Claude Code.
+3. Dans *Settings → Actions → General*, cochez **Allow GitHub Actions to create and approve pull requests** : sans cela, l'Action ne peut pas ouvrir la PR.
+4. Recommandé : une règle de protection sur `main` qui impose une pull request. La relecture humaine est le dernier rempart, y compris contre un document piégé.
+5. Poussez un commit : le déploiement écrit `ATELIER_GITHUB_TOKEN`, `ATELIER_DOCS_KEY` et le nom du dépôt dans le `.env` du site.
+
+Le compte gratuit de PythonAnywhere n'autorise les connexions sortantes que vers une liste de sites : l'application n'en a besoin que vers `api.github.com`. Claude, lui, tourne dans l'Action, pas sur PythonAnywhere.
+
+**Le coût** : chaque demande lance une session de Claude Code qui lit le code, écrit le module et fait tourner les tests — comptez quelques dollars de tokens par demande, à mesurer sur les premières. Le fichier `CLAUDE.md`, à la racine, lui donne les règles d'un bon exercice : c'est lui qu'il faut enrichir si les PR s'écartent de ce que vous attendez.
 
 ### Comptes : un administrateur, des enseignants
 
@@ -628,6 +664,9 @@ Les **tables** nouvelles, elles, n'ont besoin de rien : `CREATE TABLE IF NOT EXI
 | `/admin/qcm/modele.xlsx` | enseignant | Le modèle à remplir, rempli du QCM Docker |
 | `/admin/qcm/<clé>/delete` | enseignant | Retirer un QCM importé (POST) |
 | `/admin/historique` | enseignant | Sessions closes, moyennes, export |
+| `/admin/demandes` | enseignant | Demander des exercices, suivre les demandes envoyées |
+| `/demandes/<id>/documents.zip` | **clé partagée** | Documents d'une demande, pour l'Action |
+| `/demandes/<id>/termine` | **clé partagée** | Fin du travail de l'Action : supprime les documents (POST) |
 | `/admin/sessions/<id>/export.csv` | enseignant | Notes au format CSV (séparateur `;`) |
 
 ### Structure du code
@@ -646,6 +685,7 @@ atelier/
   engine.py             Socle du moteur : structures, fabriques, correction
   exercises.py          Catalogue : chapitres, modules, registre
   qcm.py                Chapitre QCM : import Excel, modèle, rechargement
+  generation.py         Demandes d'exercices : issue GitHub, documents éphémères
   modules/              Un fichier par module d'exercices
     boucles.py  conditions.py  chaines.py
     tableaux.py  recursif.py   arguments.py

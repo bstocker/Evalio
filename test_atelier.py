@@ -15,8 +15,8 @@ import urllib.parse
 
 from markupsafe import escape
 
-from atelier import (create_app, db, load_env_file, exercises as ex, qcm,
-                     scoring, student)
+from atelier import (create_app, db, load_env_file, exercises as ex,
+                     generation, qcm, scoring, student)
 
 
 def tirages(pattern):
@@ -2859,6 +2859,275 @@ class PatternTest(unittest.TestCase):
                             ok,
                             "%s/%s : l'option %r produit la meme sortie que la "
                             "reference pour %s" % (key, blank_id, opt.c, params))
+
+
+class GenerationTest(unittest.TestCase):
+    """Demandes d'exercices : formulaire, issue GitHub, documents éphémères."""
+
+    KEY = "k" * 40
+
+    def setUp(self):
+        fd, self.path = tempfile.mkstemp(suffix=".sqlite")
+        os.close(fd)
+        self.dir = tempfile.mkdtemp()
+        self.app = self.make_app(enabled=True)
+        self.admin = self.app.test_client()
+        self.admin.post("/admin/login",
+                        data={"username": "prof", "password": "secret"})
+        # Aucune issue n'est ouverte pour de vrai : on retient les appels.
+        self.issues = []
+        self.github_error = None
+        self._real = generation.create_issue
+
+        def fake(config, title, body):
+            if self.github_error:
+                raise generation.GitHubError(self.github_error)
+            self.issues.append((title, body))
+            return 42, "https://github.com/moi/evalio/issues/42"
+        generation.create_issue = fake
+
+    def tearDown(self):
+        generation.create_issue = self._real
+        shutil.rmtree(self.dir, ignore_errors=True)
+        for suffix in ("", "-wal", "-shm"):
+            try:
+                os.remove(self.path + suffix)
+            except OSError:
+                pass
+
+    def make_app(self, enabled):
+        config = {"TESTING": True, "DATABASE": self.path, "SECRET_KEY": "test",
+                  "ADMIN_USER": "prof", "ADMIN_PASSWORD": "secret",
+                  "REQUESTS_DIR": self.dir,
+                  "GITHUB_TOKEN": "", "GITHUB_REPO": "", "DOCS_KEY": ""}
+        if enabled:
+            config.update(GITHUB_TOKEN="ghp_test", GITHUB_REPO="moi/evalio",
+                          DOCS_KEY=self.KEY)
+        return create_app(config)
+
+    def send(self, files=None, **fields):
+        data = {"title": "Les pointeurs", "quantity": "4",
+                "kinds": ["complete", "debug"], "placement": "existing",
+                "chapter_key": "c", "instructions": "Niveau débutant."}
+        data.update(fields)
+        if files is None:
+            files = [(b"cours sur les pointeurs", "cours.pdf")]
+        data["documents"] = [(io.BytesIO(content), name)
+                             for content, name in files]
+        return self.admin.post("/admin/demandes", data=data,
+                               content_type="multipart/form-data")
+
+    def rows(self):
+        with self.app.app_context():
+            return db.query("SELECT * FROM generation_request")
+
+    def auth(self, key=None):
+        return {"Authorization": "Bearer %s" % (key or self.KEY)}
+
+    # -- formulaire --------------------------------------------------------
+
+    def test_the_nav_links_to_the_requests_page(self):
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertIn('href="/admin/demandes"', html)
+
+    def test_without_settings_the_page_explains_and_refuses(self):
+        self.app = self.make_app(enabled=False)
+        self.admin = self.app.test_client()
+        self.admin.post("/admin/login",
+                        data={"username": "prof", "password": "secret"})
+        html = self.admin.get("/admin/demandes").get_data(as_text=True)
+        self.assertIn("ATELIER_GITHUB_TOKEN", html)
+        self.assertNotIn('name="documents"', html)
+        self.assertEqual(self.send().status_code, 404)
+        self.assertEqual(self.issues, [])
+
+    def test_the_page_requires_a_teacher(self):
+        resp = self.app.test_client().get("/admin/demandes")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/admin/login", resp.headers["Location"])
+
+    def test_a_request_opens_an_issue_and_keeps_the_documents(self):
+        resp = self.send(files=[(b"un", "cours.pdf"), (b"deux", "tp.docx")])
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("ok=", resp.headers["Location"])
+
+        (row,) = self.rows()
+        self.assertEqual(row["issue_number"], 42)
+        self.assertEqual(json.loads(row["kinds"]), ["complete", "debug"])
+        self.assertEqual(row["created_by"], "prof")
+        self.assertEqual(sorted(os.listdir(os.path.join(self.dir, str(row["id"])))),
+                         ["cours.pdf", "tp.docx"])
+
+        (title, body), = self.issues
+        self.assertEqual(title, "Exercices : Les pointeurs")
+        self.assertIn("<!-- evalio-demande: %d -->" % row["id"], body)
+        self.assertIn("Langage C", body)
+        self.assertIn("Niveau débutant.", body)
+
+    def test_the_issue_never_carries_the_documents_or_the_key(self):
+        """Le dépôt est public : l'issue aussi."""
+        self.send(files=[(b"contenu confidentiel", "cours.pdf")])
+        (_title, body), = self.issues
+        self.assertNotIn(self.KEY, body)
+        self.assertNotIn("contenu confidentiel", body)
+        self.assertNotIn("documents.zip", body)
+        self.assertNotIn("http", body)
+
+    def test_a_pipe_in_the_title_keeps_the_issue_table(self):
+        self.send(title="Entrées | sorties")
+        (_title, body), = self.issues
+        self.assertIn("| Intitulé du module | Entrées \\| sorties |", body)
+
+    def test_a_new_chapter_is_named_in_the_issue(self):
+        self.send(placement="new", new_chapter="Python")
+        (_title, body), = self.issues
+        self.assertIn("nouveau chapitre « Python »", body)
+
+    def test_refused_requests_leave_nothing_behind(self):
+        cases = (
+            ({"files": [(b"MZ", "virus.exe")]}, "n'est pas accepté"),
+            ({"files": []}, "au moins un document"),
+            ({"files": [(b"", "vide.pdf")]}, "est vide"),
+            ({"quantity": "0"}, "de 1 à"),
+            ({"quantity": "99"}, "de 1 à"),
+            ({"kinds": []}, "au moins une nature"),
+            ({"title": "  "}, "intitulé"),
+            ({"chapter_key": "inconnu"}, "Choisissez le chapitre"),
+            ({"placement": "new", "new_chapter": ""}, "nouveau chapitre"),
+        )
+        for fields, message in cases:
+            with self.subTest(champs=fields):
+                html = self.send(**fields).get_data(as_text=True)
+                self.assertIn(str(escape(message)), html)
+        self.assertEqual(self.rows(), [])
+        self.assertEqual(self.issues, [])
+        self.assertEqual(os.listdir(self.dir), [])
+
+    def test_too_many_documents_are_refused(self):
+        files = [(b"x", "f%d.txt" % i) for i in range(generation.MAX_FILES + 1)]
+        self.assertIn("au plus", self.send(files=files).get_data(as_text=True))
+        self.assertEqual(self.rows(), [])
+
+    def test_same_names_do_not_overwrite_each_other(self):
+        self.send(files=[(b"un", "cours.pdf"), (b"deux", "cours.pdf")])
+        (row,) = self.rows()
+        names = sorted(os.listdir(os.path.join(self.dir, str(row["id"]))))
+        self.assertEqual(names, ["cours-2.pdf", "cours.pdf"])
+
+    def test_a_github_failure_deletes_the_documents(self):
+        self.github_error = "GitHub a refusé l'issue (HTTP 401)"
+        html = self.send().get_data(as_text=True)
+        self.assertIn("HTTP 401", html)
+        self.assertEqual(self.rows(), [])
+        self.assertEqual(self.issues, [])
+        self.assertEqual(os.listdir(self.dir), [])
+
+    def test_a_failed_form_keeps_what_was_typed(self):
+        html = self.send(files=[(b"MZ", "virus.exe")],
+                         title="Mon module").get_data(as_text=True)
+        self.assertIn('value="Mon module"', html)
+
+    def test_the_issue_request_sent_to_github(self):
+        import urllib.error
+        sent = []
+
+        class Answer(io.BytesIO):
+            def __enter__(self): return self
+            def __exit__(self, *exc): return False
+
+        def urlopen(req, timeout):
+            sent.append(req)
+            return Answer(json.dumps({"number": 7, "html_url": "u"}).encode())
+
+        real = generation.urllib.request.urlopen
+        generation.urllib.request.urlopen = urlopen
+        try:
+            config = {"GITHUB_TOKEN": "ghp_x", "GITHUB_REPO": "moi/evalio"}
+            self.assertEqual(self._real(config, "T", "B"), (7, "u"))
+            (req,) = sent
+            self.assertEqual(req.full_url,
+                             "https://api.github.com/repos/moi/evalio/issues")
+            self.assertEqual(req.get_header("Authorization"), "Bearer ghp_x")
+            self.assertEqual(json.loads(req.data)["labels"],
+                             [generation.ISSUE_LABEL])
+
+            def refuse(req, timeout):
+                raise urllib.error.HTTPError(req.full_url, 401, "no", {},
+                                             io.BytesIO(b"Bad credentials"))
+            generation.urllib.request.urlopen = refuse
+            with self.assertRaises(generation.GitHubError) as caught:
+                self._real(config, "T", "B")
+            self.assertIn("Bad credentials", str(caught.exception))
+        finally:
+            generation.urllib.request.urlopen = real
+
+    # -- accès de l'Action -------------------------------------------------
+
+    def test_the_documents_need_the_shared_key(self):
+        self.send()
+        (row,) = self.rows()
+        url = "/demandes/%d/documents.zip" % row["id"]
+        client = self.app.test_client()
+        self.assertEqual(client.get(url).status_code, 401)
+        self.assertEqual(client.get(url, headers=self.auth("faux" * 10))
+                         .status_code, 401)
+        self.assertEqual(client.post("/demandes/%d/termine" % row["id"])
+                         .status_code, 401)
+        # Une session enseignant ne suffit pas : seule la clé ouvre.
+        self.assertEqual(self.admin.get(url).status_code, 401)
+
+    def test_no_key_configured_means_no_access(self):
+        self.app = self.make_app(enabled=False)
+        resp = self.app.test_client().get("/demandes/1/documents.zip",
+                                          headers={"Authorization": "Bearer "})
+        self.assertEqual(resp.status_code, 401)
+
+    def test_the_action_downloads_then_the_documents_are_deleted(self):
+        self.send(files=[(b"un", "cours.pdf"), (b"deux", "notes.txt")])
+        (row,) = self.rows()
+        client = self.app.test_client()
+
+        resp = client.get("/demandes/%d/documents.zip" % row["id"],
+                          headers=self.auth())
+        self.assertEqual(resp.status_code, 200)
+        import zipfile
+        with zipfile.ZipFile(io.BytesIO(resp.data)) as zf:
+            self.assertEqual(sorted(zf.namelist()), ["cours.pdf", "notes.txt"])
+            self.assertEqual(zf.read("notes.txt"), b"deux")
+        (row,) = self.rows()
+        self.assertIsNotNone(row["fetched_at"])
+
+        resp = client.post("/demandes/%d/termine" % row["id"], headers=self.auth())
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(os.path.exists(os.path.join(self.dir, str(row["id"]))))
+        (row,) = self.rows()
+        self.assertIsNotNone(row["purged_at"])
+        self.assertEqual(client.get("/demandes/%d/documents.zip" % row["id"],
+                                    headers=self.auth()).status_code, 410)
+        # Une seconde fin de travail ne casse rien.
+        self.assertEqual(client.post("/demandes/%d/termine" % row["id"],
+                                     headers=self.auth()).status_code, 200)
+
+    def test_unknown_request_is_404(self):
+        self.assertEqual(self.app.test_client().get(
+            "/demandes/999/documents.zip", headers=self.auth()).status_code, 404)
+
+    def test_old_documents_are_purged(self):
+        self.send()
+        (row,) = self.rows()
+        with self.app.app_context():
+            db.execute("UPDATE generation_request SET created_at = ?",
+                       ("2000-01-01T00:00:00+00:00",))
+        html = self.admin.get("/admin/demandes").get_data(as_text=True)
+        self.assertFalse(os.path.exists(os.path.join(self.dir, str(row["id"]))))
+        self.assertIn("supprimés", html)
+
+    def test_the_page_lists_the_requests(self):
+        self.send()
+        html = self.admin.get("/admin/demandes").get_data(as_text=True)
+        self.assertIn("Les pointeurs", html)
+        self.assertIn("https://github.com/moi/evalio/issues/42", html)
+        self.assertIn("Compléter, Trouver le bug", html)
 
 
 if __name__ == "__main__":

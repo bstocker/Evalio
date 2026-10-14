@@ -8,3 +8,4 @@ instance/
 *.sqlite-shm
 .DS_Store
 .env
+.evalio-docs/

@@ -106,6 +106,26 @@ CREATE TABLE IF NOT EXISTS hidden_module (
     hidden_at  TEXT NOT NULL
 );
 
+-- Demandes d'exercices envoyees au depot GitHub (cf. atelier/generation.py).
+-- Les documents eux-memes sont sur le disque, dans instance/demandes/<id>/,
+-- et `purged_at` dit quand ils en sont partis.
+CREATE TABLE IF NOT EXISTS generation_request (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    title        TEXT    NOT NULL,
+    quantity     INTEGER NOT NULL,
+    kinds        TEXT    NOT NULL,              -- JSON : natures demandees
+    chapter_key  TEXT    NOT NULL DEFAULT '',   -- chapitre existant...
+    new_chapter  TEXT    NOT NULL DEFAULT '',   -- ...ou titre d'un nouveau
+    instructions TEXT    NOT NULL DEFAULT '',
+    files        TEXT    NOT NULL DEFAULT '[]', -- JSON : [{name, size}]
+    created_by   TEXT    NOT NULL DEFAULT '',
+    created_at   TEXT    NOT NULL,
+    issue_number INTEGER,
+    issue_url    TEXT,
+    fetched_at   TEXT,                          -- telecharges par l'Action
+    purged_at    TEXT                           -- supprimes du serveur
+);
+
 CREATE INDEX IF NOT EXISTS idx_qcm_question_module
     ON qcm_question(module_id, position);
 
