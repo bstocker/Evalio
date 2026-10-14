@@ -175,7 +175,36 @@
   <p class="muted">Aucune session en cours.</p>
   {% endif %}
 </div>
-<div class="card">
+<div class="card" id="exercices">
+  <h1>Exercices</h1>
+  <p class="muted">Les séries livrées avec l'application, utilisables dans
+     toute session. Les QCM ont leur propre section, juste en dessous.</p>
+  {% if series %}
+  <div class="tablewrap">
+    <table class="table">
+      <thead><tr><th>Série</th><th>Chapitre</th><th>Niveau</th><th>Exercices</th></tr></thead>
+      <tbody>
+        {% for s in series %}
+        <tr>
+          <td>{{ s.title }}</td>
+          <td class="muted">{{ s.chapter }}</td>
+          <td>
+            <span class="level-badge lvl{{ s.level }}">
+              <span class="level-dots" aria-hidden="true">{{ '●' * s.level }}{{ '○' * (4 - s.level) }}</span>
+              {{ levels[s.level] }}
+            </span>
+          </td>
+          <td class="num">{{ s.exercises }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Aucune série d'exercices au catalogue.</p>
+  {% endif %}
+</div>
+<div class="card" id="qcm">
   <div class="panel-head">
     <div>
       <h1>Importer un QCM</h1>
