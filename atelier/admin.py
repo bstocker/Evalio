@@ -205,7 +205,7 @@ def dashboard():
     return render_template(
         "admin_dashboard.html", sessions=sessions,
         catalogue=catalogue, levels=ex.LEVELS,
-        series=series,
+        qcm_key=ex.QCM_CHAPTER_KEY, series=series,
         imported=imported,
         imported_keys={q["key"] for q in imported},
         hidden=[{"key": key, "title": ex.MODULE_BY_KEY[key].title,

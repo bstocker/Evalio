@@ -476,6 +476,11 @@ pre.code .empty { color: var(--critical); font-weight: 700; }
 .chapter-title { margin: 0; font-size: 1.25rem; }
 .chapter .module { background: var(--surface-0); }
 
+/* Section Exercices : un pli au-dessus des chapitres, a cote du QCM. Les
+   fonds alternent pour que chaque niveau se detache de celui qui l'entoure. */
+.section > .chapter { background: var(--surface-0); }
+.section > .chapter .module { background: var(--surface-1); }
+
 /* Modules : le premier niveau de regroupement du catalogue */
 .module {
   border: 1px solid var(--border); border-radius: var(--radius);

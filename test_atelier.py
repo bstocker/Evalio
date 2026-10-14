@@ -582,6 +582,21 @@ class AtelierTest(unittest.TestCase):
                     else:
                         self.assertIn(str(escape(module.title)), card)
 
+    def test_the_composition_wraps_exercise_chapters_in_one_section(self):
+        """Exercices de l'épreuve : un pli Exercices, puis le chapitre QCM."""
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        start = html.index('data-chapter="exercices"')
+        qcm_fold = html.index('data-chapter="%s"' % ex.QCM_CHAPTER_KEY)
+        self.assertLess(html.index("Exercices de l'épreuve"), start)
+        self.assertLess(start, qcm_fold)
+        for chapter in ex.CHAPTERS:
+            if chapter.key == ex.QCM_CHAPTER_KEY:
+                continue
+            with self.subTest(chapitre=chapter.key):
+                fold = html.index('data-chapter="%s"' % chapter.key)
+                self.assertLess(start, fold)
+                self.assertLess(fold, qcm_fold)
+
     def test_a_hidden_series_leaves_the_exercise_card(self):
         self.admin.post("/admin/modules/boucles/delete")
         html = self.admin.get("/admin/").get_data(as_text=True)
