@@ -2710,7 +2710,7 @@ class DockerTest(unittest.TestCase):
         chapitre = [c for c in ex.CHAPTERS if c.key == "docker"]
         self.assertEqual(len(chapitre), 1)
         self.assertEqual([m.key for m in chapitre[0].modules],
-                         ["docker_bases"])
+                         ["docker_bases", "docker_actions"])
         self.assertEqual(ex.chapter_of(self.module().keys[0]).key, "docker")
 
     def test_every_exercise_is_a_course_question(self):
@@ -2737,6 +2737,30 @@ class DockerTest(unittest.TestCase):
             with self.subTest(exercice=key):
                 self.assertLessEqual(
                     set(re.findall(r"docker (\w+)", texte)), self.VUES)
+
+
+class DockerActionsTest(unittest.TestCase):
+    """Le module « Tests Actions » : six questions de cours."""
+
+    def module(self):
+        return ex.MODULE_BY_KEY["docker_actions"]
+
+    def test_six_course_questions(self):
+        keys = self.module().keys
+        self.assertEqual(len(keys), 6)
+        for key in keys:
+            pattern = ex.PATTERNS[key]
+            options = pattern.blanks["choix"][1]
+            with self.subTest(exercice=key):
+                self.assertEqual(pattern.mode, "qcm")
+                self.assertEqual(len(options), 4)
+                self.assertEqual(len({o.c for o in options}), 4)
+                self.assertIn(pattern.level, (1, 2, 3, 4))
+                self.assertEqual(ex.chapter_of(key).key, "docker")
+
+    def test_the_right_answers_move_around(self):
+        places = {ex.PATTERNS[k].ref["choix"] for k in self.module().keys}
+        self.assertEqual(places, {"c0", "c1", "c2", "c3"})
 
 
 class CatalogueTest(unittest.TestCase):
