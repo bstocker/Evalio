@@ -101,6 +101,7 @@
         </span>
       </label>
     </div>
+    <button type="submit" class="primary">Créer la session</button>
     <fieldset>
       <legend>Choix de l'exercice</legend>
       <p class="hint">
@@ -126,7 +127,6 @@
 
       {% for chapter, modules in catalogue if chapter.key == qcm_key %}{{ chapter_fold(chapter, modules) }}{% endfor %}
     </fieldset>
-    <button type="submit" class="primary">Créer la session</button>
   </form>
 
   {% for chapter, modules in catalogue %}{% for module, niveaux in modules %}
