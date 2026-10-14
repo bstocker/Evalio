@@ -21,8 +21,8 @@ from .engine import (  # noqa: F401  — réexportés pour le reste de l'appli
     register, render_code, shuffled_blanks, specs, substitute, target_rows,
     unregister,
 )
-from .modules import (arguments, boucles, chaines, conditions, docker_bases,
-                      linux_droits, linux_fichiers, linux_filtres, linux_shell,
+from .modules import (arguments, boucles, chaines, conditions, docker_actions,
+                      docker_bases, linux_droits, linux_fichiers, linux_filtres, linux_shell,
                       qcm_docker, recursif, reseau_masques, tableaux)
 
 # Chapitres livrés avec l'application. Le chapitre QCM reçoit en plus, à
@@ -55,7 +55,7 @@ BASE_CHAPTERS = (
         key="docker",
         title="Docker",
         summary="Les conteneurs, module par module.",
-        modules=(docker_bases.MODULE,),
+        modules=(docker_bases.MODULE, docker_actions.MODULE),
     ),
     Chapter(
         key="qcm",
@@ -70,7 +70,8 @@ QCM_CHAPTER_KEY = "qcm"
 
 for _module in (boucles, conditions, chaines, tableaux, recursif,
                 arguments, linux_fichiers, linux_filtres, linux_droits,
-                linux_shell, reseau_masques, docker_bases, qcm_docker):
+                linux_shell, reseau_masques, docker_bases, docker_actions,
+                qcm_docker):
     register(_module.PATTERNS)
 
 # Modules importés actuellement chargés : clé -> Module. Reconstruits par
