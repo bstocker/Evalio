@@ -121,7 +121,7 @@ jobs:
             echo "::error::La cle API Anthropic est refusee (HTTP ${status})."
             case "$status" in
               401) echo "Cle invalide : verifiez le secret ANTHROPIC_API_KEY (sans espace ni retour a la ligne)." ;;
-              400) echo "Souvent un credit epuise : verifiez Billing dans la console Anthropic." ;;
+              400) echo "Requete refusee : le message de l'API, juste en dessous, dit pourquoi (cle sans espace de travail, credit epuise...)." ;;
               403) echo "Cle sans droit d'acces : verifiez son espace de travail dans la console Anthropic." ;;
               429) echo "Limite de debit atteinte : relancez plus tard." ;;
             esac
@@ -168,10 +168,13 @@ jobs:
             `gh issue comment`.
           # Les guillemets sont indispensables : sans eux, la liste est
           # coupee aux espaces de `Bash(git status:*)` et devient illisible.
+          # Le push est autorise par sa commande exacte : un motif comme
+          # `evalio/demande-:*` ne reconnait pas `evalio/demande-3`, le `:*`
+          # n'admettant de suite qu'apres une espace.
           claude_args: |
             --model claude-opus-5-5
             --max-turns 120
-            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python:*),Bash(python3:*),Bash(gcc:*),Bash(./a.out:*),Bash(ls:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git switch:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin evalio/demande-:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*)"
+            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python:*),Bash(python3:*),Bash(gcc:*),Bash(./a.out:*),Bash(ls:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git switch:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin evalio/demande-${{ steps.demande.outputs.id }}),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*)"
 
       - name: Delete documents
         # Toujours, que le travail ait reussi ou non : les documents ne

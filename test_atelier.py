@@ -3000,6 +3000,7 @@ class GenerationTest(unittest.TestCase):
             ({"kinds": []}, "au moins une nature"),
             ({"title": "  "}, "intitulé"),
             ({"chapter_key": "inconnu"}, "Choisissez le chapitre"),
+            ({"chapter_key": ""}, "Choisissez le chapitre"),
             ({"placement": "new", "new_chapter": ""}, "nouveau chapitre"),
         )
         for fields, message in cases:

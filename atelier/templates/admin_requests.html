@@ -49,6 +49,9 @@
                  {% if form.get('placement', 'existing') != 'new' %}checked{% endif %}>
           <span><strong>Dans un chapitre existant</strong>
             <select name="chapter_key" aria-label="Chapitre existant">
+              {# Aucun chapitre par defaut : un choix laisse tel quel rangerait
+                 des exercices Docker dans le chapitre C. #}
+              <option value="">— choisir —</option>
               {% for c in chapters %}
               <option value="{{ c.key }}" {% if form.get('chapter_key') == c.key %}selected{% endif %}>{{ c.title }}</option>
               {% endfor %}
