@@ -115,8 +115,8 @@ def _trouve(garde):
 CHMOD_OCTAL = Pattern(
     key="lx_chmod_octal",
     name="Rendre un script exécutable",
-    brief="Donner au script les droits 755 : tout lire et exécuter, mais "
-          "le seul propriétaire peut le modifier.",
+    brief="Rendre le script lisible et exécutable par tout le monde, "
+          "mais modifiable par son seul propriétaire.",
     why="Trois chiffres, trois publics : propriétaire, groupe, autres.",
     lesson=lecon(
         "`ls -l` montre les droits en tête de ligne : `-rw-r--r--`. Le "

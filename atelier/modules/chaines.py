@@ -423,7 +423,7 @@ int main(void) {
         ("c", "Il faut `%s` et non `%c` dans le `printf`.",
          "Non : afficher caractère par caractère est justement l'exercice, "
          "et `%c` est le bon format pour cela."),
-        ("d", "Le `printf(\"\\\\n\")` final est en trop.",
+        ("d", "Le `printf(\"\\n\")` final est en trop.",
          "Non : la sortie attendue tient aussi sur une ligne. Le nombre de "
          "lignes est bon, c'est leur contenu qui est amputé."),
     ),

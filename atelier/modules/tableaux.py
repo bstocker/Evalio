@@ -154,10 +154,11 @@ def _extremes_rows(p, get):
     maxi = mini = t[0]
     out = []
     for i in range(1, len(t)):
-        ctx = {"t": t, "i": i, "maxi": maxi, "mini": mini}
-        if haut(ctx):
+        if haut({"t": t, "i": i, "maxi": maxi, "mini": mini}):
             maxi = t[i]
-        if bas(ctx):
+        # Le second test relit maxi tel que le premier l'a laisse, comme
+        # le C : une condition croisee (`t[i] < maxi`) voit la mise a jour.
+        if bas({"t": t, "i": i, "maxi": maxi, "mini": mini}):
             mini = t[i]
         out.append("%d %d" % (maxi, mini))
     return out + ["max %d" % maxi, "min %d" % mini]
