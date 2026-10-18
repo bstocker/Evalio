@@ -1,5 +1,5 @@
-/* Liste de classe, cote enseignant : le QR code, sa projection en grand,
-   et les inscrits relus toutes les 3 secondes.
+/* Liste de classe, cote enseignant : le QR code, le lien vers sa
+   projection, et les inscrits relus toutes les 3 secondes.
    PythonAnywhere n'offre pas de WebSocket : on interroge le serveur, comme
    le suivi direct d'une session (cf. admin_live.js). */
 (function () {
@@ -10,9 +10,7 @@
   var body = document.getElementById("entries");
   var empty = document.getElementById("empty");
   var count = document.getElementById("count");
-  var countBig = document.getElementById("count-big");
   var stamp = document.getElementById("live-stamp");
-  var projection = document.getElementById("projection");
 
   // Le QR code est dessine ici, dans le navigateur : aucune dependance de
   // plus a installer sur le serveur. Niveau de correction M, et une marge
@@ -25,11 +23,6 @@
     box.innerHTML = qr.createSvgTag({ cellSize: 8, margin: 32, scalable: true });
   }
   drawQr(document.getElementById("qr"));
-  drawQr(document.getElementById("qr-big"));
-
-  function inscrits(n) {
-    return n + (n > 1 ? " inscrits" : " inscrit");
-  }
 
   function cell(text) {
     var td = document.createElement("td");
@@ -48,7 +41,6 @@
 
   function render(data) {
     count.textContent = data.count;
-    countBig.textContent = inscrits(data.count);
     empty.hidden = data.count > 0;
     body.textContent = "";
     data.entries.forEach(function (entry) {
@@ -98,27 +90,16 @@
     if (!document.hidden) refresh();
   }, POLL_MS);
 
-  // Projection : la vue occupe toute la fenetre, et passe en plein ecran
-  // quand le navigateur l'accepte.
-  function project() {
-    projection.hidden = false;
-    if (projection.requestFullscreen) {
-      projection.requestFullscreen().catch(function () {});
+  // Projection : une fenetre a part, que l'enseignant glisse sur l'ecran
+  // du videoprojecteur. Sa page continue de vivre pendant qu'il travaille
+  // ailleurs. Sans JavaScript, le lien l'ouvre dans un nouvel onglet.
+  var project = document.getElementById("project");
+  project.addEventListener("click", function (event) {
+    var win = window.open(project.href, project.target,
+                          "popup,width=960,height=1000");
+    if (win) {
+      event.preventDefault();
+      win.focus();
     }
-  }
-  function unproject() {
-    projection.hidden = true;
-    if (document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(function () {});
-    }
-  }
-  document.getElementById("project").addEventListener("click", project);
-  document.getElementById("unproject").addEventListener("click", unproject);
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !projection.hidden) unproject();
-  });
-  // Echap quitte d'abord le plein ecran, sans keydown : on ferme avec.
-  document.addEventListener("fullscreenchange", function () {
-    if (!document.fullscreenElement) projection.hidden = true;
   });
 })();

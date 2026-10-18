@@ -183,6 +183,21 @@ def view(roster_id):
         join_url=url_for("roster.form", code=roster["code"], _external=True))
 
 
+@bp.get("/admin/listes/<int:roster_id>/projection")
+@require_admin
+def projection(roster_id):
+    """Le QR code seul, en grand, pour une fenetre a part.
+
+    L'enseignant la glisse sur l'ecran du videoprojecteur et continue de
+    travailler dans la sienne : la projection ne depend plus de la page
+    qu'il quitte.
+    """
+    roster = get_roster(roster_id)
+    return render_template(
+        "roster_projection.html", roster=roster,
+        join_url=url_for("roster.form", code=roster["code"], _external=True))
+
+
 @bp.get("/admin/api/listes/<int:roster_id>")
 @require_admin
 def api_entries(roster_id):

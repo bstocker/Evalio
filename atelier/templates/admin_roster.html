@@ -15,8 +15,8 @@
         par {{ roster['created_by'] }}{% endif %}.</p>
     </div>
     <div class="session-actions">
-      <button type="button" class="primary" id="project"
-              {{ 'disabled' if roster['status'] != 'open' }}>Projeter le QR code</button>
+      <a class="ghost primary" id="project" target="evalio-projection-{{ roster['id'] }}"
+         href="{{ url_for('roster.projection', roster_id=roster['id']) }}">Projeter le QR code</a>
       {% if roster['status'] == 'open' %}
       <form method="post" class="inline"
             action="{{ url_for('roster.close', roster_id=roster['id']) }}">
@@ -74,18 +74,6 @@
   <p class="muted" id="empty" hidden>Personne ne s'est encore inscrit.</p>
   <p class="hint">Mise à jour automatique toutes les 3 secondes, par ordre
      alphabétique.</p>
-</div>
-
-{# Vue de projection : le QR code en grand, le nom de la liste et le
-   nombre d'inscrits, lisibles du fond de la salle. #}
-<div class="projection" id="projection" hidden>
-  <h1>{{ roster['title'] }}</h1>
-  <p class="projection-hint">Flashez le QR code, puis indiquez votre nom et votre prénom.</p>
-  <div class="roster-qr" id="qr-big" data-url="{{ join_url }}"
-       role="img" aria-label="QR code menant à la page d'inscription"></div>
-  <p class="projection-url mono">{{ join_url }}</p>
-  <p class="projection-count" id="count-big"></p>
-  <button type="button" class="ghost" id="unproject">Fermer (Échap)</button>
 </div>
 {% endblock %}
 {% block scripts %}

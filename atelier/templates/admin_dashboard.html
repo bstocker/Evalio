@@ -109,6 +109,11 @@
           <td class="row-actions">
             <a class="ghost" href="{{ url_for('roster.view', roster_id=r['id']) }}">Ouvrir</a>
             <a class="ghost" href="{{ url_for('roster.export_xlsx', roster_id=r['id']) }}">Excel</a>
+            <form method="post" class="inline"
+                  action="{{ url_for('roster.delete', roster_id=r['id']) }}"
+                  data-confirm="Supprimer définitivement la liste « {{ r['title'] }} » et ses {{ r['entries'] }} inscrit{{ 's' if r['entries'] > 1 }} ?">
+              <button type="submit" class="ghost danger-text">Supprimer</button>
+            </form>
           </td>
         </tr>
         {% endfor %}

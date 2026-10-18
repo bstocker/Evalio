@@ -349,12 +349,12 @@ Plusieurs processus servent l'application, et un import fait dans l'un doit êtr
 Pour recueillir les noms et prénoms d'une classe, sans session d'exercices : la carte **Listes de classe**, en tête de l'espace enseignant, juste au-dessus de **Nouvelle session**.
 
 1. Donnez un nom à la liste (« B2 CDA ») et cliquez sur **Créer et afficher le QR code**.
-2. **Projeter le QR code** l'affiche en plein écran, lisible du fond de la salle, avec le nombre d'inscrits. Échap ferme la projection.
+2. **Projeter le QR code** ouvre une **fenêtre à part** : le QR code en grand, le nom de la liste et le nombre d'inscrits, lisibles du fond de la salle. Glissez-la sur l'écran du vidéoprojecteur, et cliquez sur **Plein écran** si vous le souhaitez. Vous continuez à travailler dans Evalio, ou ailleurs, sans interrompre l'affichage. Si la liste est close, la projection le dit.
 3. Chaque élève flashe le QR code, saisit son nom et son prénom, puis **Enregistrer**. Pas de code à taper, pas de compte : la page tient sur un téléphone.
 4. Les inscrits apparaissent sur votre page en quelques secondes, par ordre alphabétique, avec la **date et l'heure d'enregistrement**. Un bouton **Retirer** efface une ligne fantaisiste.
 5. **Export Excel** télécharge le classeur : nom, prénom, date et heure.
 
-La liste est **conservée** : on la retrouve dans la carte **Listes de classe**, avec son effectif. **Clore la liste** ferme les inscriptions sans rien effacer, **Rouvrir** les rouvre. Seul **Supprimer** l'efface, avec ses inscrits.
+La liste est **conservée** : on la retrouve dans la carte **Listes de classe**, avec son effectif. **Clore la liste** ferme les inscriptions sans rien effacer, **Rouvrir** les rouvre. Seul **Supprimer**, sur la page de la liste ou à côté du bouton **Excel** de la carte, l'efface avec ses inscrits, après confirmation.
 
 Quelques garde-fous : un élève qui valide deux fois n'apparaît qu'une fois (casse ignorée), une liste ne dépasse pas 500 inscrits, et un nom saisi comme `=1+1` reste du texte dans le classeur, pas une formule. Les heures sont stockées en UTC et affichées à l'heure de Paris.
 
@@ -686,7 +686,8 @@ Les **tables** nouvelles, elles, n'ont besoin de rien : `CREATE TABLE IF NOT EXI
 | `/admin/sessions/<id>/export.csv` | enseignant | Notes au format CSV (séparateur `;`) |
 | `/l/<code>` | public | **Page du QR code** d'une liste de classe : nom, prénom, Enregistrer |
 | `/admin/listes` | enseignant | Créer une liste de classe (POST) |
-| `/admin/listes/<id>` | enseignant | QR code, projection, inscrits en direct, clore, rouvrir, supprimer |
+| `/admin/listes/<id>` | enseignant | QR code, inscrits en direct, clore, rouvrir, supprimer |
+| `/admin/listes/<id>/projection` | enseignant | Le QR code seul, en grand, pour une fenêtre à part |
 | `/admin/api/listes/<id>` | enseignant | Les inscrits, relus toutes les 3 s |
 | `/admin/listes/<id>/export.xlsx` | enseignant | La liste au format Excel |
 
@@ -730,7 +731,8 @@ atelier/
     js/admin_compose.js Composition d'une session : plis et sélections
     js/admin_preview.js Fiche d'un exercice, côté enseignant
     js/admin_live.js    Suivi direct (interrogation toutes les 5 s)
-    js/admin_roster.js  Liste de classe : QR code, projection, inscrits
+    js/admin_roster.js  Liste de classe : QR code, inscrits
+    js/roster_projection.js  Fenêtre de projection d'une liste de classe
     js/vendor/          qrcode-generator (MIT), dessin du QR code
 test_atelier.py         Tests de bout en bout
 .env                    Genere par le deploiement, jamais versionne
