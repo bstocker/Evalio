@@ -3389,6 +3389,37 @@ class RosterTest(unittest.TestCase):
         self.assertEqual(anon.post("/admin/listes",
                                    data={"title": "X"}).status_code, 302)
 
+    def test_the_projection_opens_in_its_own_window(self):
+        roster_id, path = self.make_roster()
+        page = self.admin.get("/admin/listes/%d" % roster_id) \
+                         .get_data(as_text=True)
+        url = "/admin/listes/%d/projection" % roster_id
+        # Un lien vers une fenetre nommee : la page de la liste reste libre.
+        self.assertRegex(page, r'href="%s"' % re.escape(url))
+        self.assertIn('target="evalio-projection-%d"' % roster_id, page)
+        self.assertNotIn('id="projection"', page)
+
+        projection = self.admin.get(url).get_data(as_text=True)
+        self.assertIn("B2 CDA", projection)
+        self.assertIn('data-url="http://localhost%s"' % path, projection)
+        self.assertIn("projecting", projection)
+        self.assertEqual(self.app.test_client().get(url).status_code, 302)
+
+    def test_a_list_can_be_deleted_from_the_dashboard(self):
+        roster_id, path = self.make_roster()
+        self.register(path)
+        page = self.admin.get("/admin/").get_data(as_text=True)
+        action = 'action="/admin/listes/%d/delete"' % roster_id
+        self.assertIn(action, page)
+        # A cote du bouton Excel, et avec une confirmation.
+        excel = page.index("/admin/listes/%d/export.xlsx" % roster_id)
+        self.assertLess(excel, page.index(action))
+        self.assertIn("Supprimer définitivement la liste « B2 CDA » et ses "
+                      "1 inscrit ?", page)
+        self.admin.post("/admin/listes/%d/delete" % roster_id)
+        page = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertNotIn(action, page)
+
     def test_a_list_is_capped(self):
         from atelier import roster
         roster_id, path = self.make_roster()

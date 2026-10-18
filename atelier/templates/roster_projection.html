@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Projection · {{ roster['title'] }}{% endblock %}
+{% block body_class %}projecting{% endblock %}
+{% block main_class %}{% endblock %}
+{% block content %}
+{# Fenetre a part, ouverte depuis la page de la liste et glissee sur
+   l'ecran du videoprojecteur : le QR code, le nom de la liste et le
+   nombre d'inscrits, lisibles du fond de la salle. Rien d'autre. #}
+<div class="projection">
+  <h1>{{ roster['title'] }}</h1>
+  <p class="projection-hint" id="hint">Flashez le QR code, puis indiquez votre nom et votre prénom.</p>
+  <p class="projection-hint" id="closed" hidden>Cette liste est close&nbsp;:
+     elle n'accepte plus d'inscription.</p>
+  <div class="roster-qr" id="qr" data-url="{{ join_url }}"
+       role="img" aria-label="QR code menant à la page d'inscription"></div>
+  <p class="projection-url mono">{{ join_url }}</p>
+  <p class="projection-count" id="count"></p>
+  <button type="button" class="ghost" id="fullscreen">Plein écran</button>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.ROSTER_URL = "{{ url_for('roster.api_entries', roster_id=roster['id']) }}";
+</script>
+<script src="{{ url_for('static', filename='js/vendor/qrcode-generator-1.4.4.js') }}"></script>
+<script src="{{ url_for('static', filename='js/roster_projection.js') }}"></script>
+{% endblock %}

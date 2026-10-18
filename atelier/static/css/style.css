@@ -790,9 +790,11 @@ details[open] > .module-head::before { transform: rotate(90deg); }
 }
 .roster-qr svg { width: 100%; height: auto; display: block; }
 
-/* Vue de projection : tout l'ecran, lisible du fond de la salle. */
+/* Fenetre de projection : la page entiere, lisible du fond de la salle,
+   sans la barre de l'espace enseignant. */
+.projecting .topbar { display: none; }
 .projection {
-  position: fixed; inset: 0; z-index: 100; overflow: auto;
+  min-height: 100vh;
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: .75rem; padding: 2rem 1rem;
   background: var(--surface-1); text-align: center;
@@ -805,3 +807,4 @@ details[open] > .module-head::before { transform: rotate(90deg); }
                   word-break: break-all; }
 .projection-count { font-size: clamp(1.3rem, 2.6vw, 2rem); font-weight: 700;
                     margin: 0; }
+.roster-qr.dimmed { opacity: .25; }
