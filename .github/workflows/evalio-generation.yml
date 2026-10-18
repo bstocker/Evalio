@@ -212,8 +212,10 @@ jobs:
             cp -r .evalio-sortie/. "$out/"
           fi
           # Exclusions explicites, et pas seulement par .gitignore : Claude
-          # pourrait l'avoir modifie.
-          git add -A -- . ':!.evalio-docs' ':!.evalio-sortie'
+          # pourrait l'avoir modifie. Pas de pathspec ':!…' ici : nommer un
+          # chemin ignore fait echouer git add ; on les retire apres coup.
+          git add -A
+          git rm -r -q --cached --ignore-unmatch -- .evalio-docs .evalio-sortie
           git diff --cached --binary --no-renames > "$out/module.patch"
           git diff --cached --stat
           ls -la "$out"
