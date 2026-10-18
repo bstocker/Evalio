@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ roster['title'] if roster else 'Liste introuvable' }}{% endblock %}
+{% block content %}
+{# Page ouverte par le QR code projete en classe, le plus souvent sur un
+   telephone : un titre, deux champs, un bouton. #}
+<div class="card card-narrow">
+  <img class="hero-logo light"
+       src="{{ url_for('static', filename='img/logo-evalio.png') }}"
+       alt="Evalio" width="560" height="162">
+  <img class="hero-logo dark"
+       src="{{ url_for('static', filename='img/logo-evalio-dark.png') }}"
+       alt="Evalio" width="560" height="162">
+
+  {% if not roster %}
+  <h1>Liste introuvable</h1>
+  <p class="muted">Ce lien ne correspond à aucune liste. Flashez de nouveau
+     le QR code affiché par l'enseignant.</p>
+
+  {% elif done %}
+  <h1>{{ roster['title'] }}</h1>
+  <p class="notice ok-notice" role="status">
+    {% if already %}
+    <strong>{{ first }} {{ last }}</strong> figurait déjà sur cette liste.
+    Rien n'a été ajouté.
+    {% else %}
+    Merci, <strong>{{ first }} {{ last }}</strong>&nbsp;: votre nom est
+    enregistré.
+    {% endif %}
+  </p>
+  <p class="muted">Vous pouvez fermer cette page.</p>
+
+  {% elif roster['status'] != 'open' %}
+  <h1>{{ roster['title'] }}</h1>
+  <p class="muted">Cette liste est close&nbsp;: elle n'accepte plus
+     d'inscription. Adressez-vous à l'enseignant.</p>
+
+  {% else %}
+  <h1>{{ roster['title'] }}</h1>
+  <p class="muted">Indiquez votre nom et votre prénom, puis enregistrez.</p>
+  {% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" class="stack">
+    <label>Nom
+      <input name="last_name" value="{{ last or '' }}" required
+             autocomplete="family-name" maxlength="60" autofocus>
+    </label>
+    <label>Prénom
+      <input name="first_name" value="{{ first or '' }}" required
+             autocomplete="given-name" maxlength="60">
+    </label>
+    <button type="submit" class="primary">Enregistrer</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

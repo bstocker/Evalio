@@ -126,6 +126,32 @@ CREATE TABLE IF NOT EXISTS generation_request (
     purged_at    TEXT                           -- supprimes du serveur
 );
 
+-- Listes de classe (cf. atelier/roster.py) : l'enseignant projette un QR
+-- code, chaque eleve y inscrit son nom et son prenom. Rien a voir avec les
+-- copies d'une session d'exercices : ni jeton, ni cookie, un simple releve.
+CREATE TABLE IF NOT EXISTS roster (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    code        TEXT    NOT NULL UNIQUE,         -- dans l'URL du QR code
+    title       TEXT    NOT NULL,                -- « B2 CDA »
+    status      TEXT    NOT NULL DEFAULT 'open', -- open | closed
+    created_by  TEXT    NOT NULL DEFAULT '',
+    created_at  TEXT    NOT NULL,
+    closed_at   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS roster_entry (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    roster_id   INTEGER NOT NULL REFERENCES roster(id) ON DELETE CASCADE,
+    first_name  TEXT    NOT NULL,
+    last_name   TEXT    NOT NULL,
+    created_at  TEXT    NOT NULL
+);
+
+-- Un eleve qui valide deux fois n'apparait qu'une fois, casse ignoree.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_roster_identity
+    ON roster_entry(roster_id, last_name COLLATE NOCASE,
+                    first_name COLLATE NOCASE);
+
 CREATE INDEX IF NOT EXISTS idx_qcm_question_module
     ON qcm_question(module_id, position);
 

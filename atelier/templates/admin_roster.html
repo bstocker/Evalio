@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ roster['title'] }}{% endblock %}
+{% block main_class %}wrap wide{% endblock %}
+{% block topbar %}{% include "_admin_nav.html" %}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="panel-head">
+    <div>
+      <div class="title-row">
+        <h1>{{ roster['title'] }}</h1>
+        <span class="pill {{ 'ok' if roster['status'] == 'open' }}">{{ 'ouverte' if roster['status'] == 'open' else 'close' }}</span>
+      </div>
+      <p class="muted">Liste de classe créée le
+        {{ roster['created_at']|local_date }}{% if roster['created_by'] %}
+        par {{ roster['created_by'] }}{% endif %}.</p>
+    </div>
+    <div class="session-actions">
+      <button type="button" class="primary" id="project"
+              {{ 'disabled' if roster['status'] != 'open' }}>Projeter le QR code</button>
+      {% if roster['status'] == 'open' %}
+      <form method="post" class="inline"
+            action="{{ url_for('roster.close', roster_id=roster['id']) }}">
+        <button type="submit" class="ghost">Clore la liste</button>
+      </form>
+      {% else %}
+      <form method="post" class="inline"
+            action="{{ url_for('roster.reopen', roster_id=roster['id']) }}">
+        <button type="submit" class="ghost">Rouvrir la liste</button>
+      </form>
+      {% endif %}
+      <a class="ghost" href="{{ url_for('roster.export_xlsx', roster_id=roster['id']) }}">Export Excel</a>
+      <form method="post" class="inline"
+            action="{{ url_for('roster.delete', roster_id=roster['id']) }}"
+            onsubmit="return confirm('Supprimer définitivement cette liste et ses inscrits ?');">
+        <button type="submit" class="ghost danger-text">Supprimer</button>
+      </form>
+    </div>
+  </div>
+
+  {% if roster['status'] != 'open' %}
+  <p class="notice">La liste est close&nbsp;: le QR code mène toujours à
+     elle, mais elle n'accepte plus d'inscription. Rouvrez-la pour en
+     recevoir de nouvelles.</p>
+  {% endif %}
+
+  <div class="roster-share">
+    <div class="roster-qr" id="qr" data-url="{{ join_url }}"
+         role="img" aria-label="QR code menant à la page d'inscription"></div>
+    <div class="joinbox-link">
+      <span class="joinbox-label">Lien de la liste</span>
+      <div class="linkrow">
+        <input class="mono" id="join-url" value="{{ join_url }}" readonly
+               onfocus="this.select()">
+      </div>
+      <p class="hint">Le QR code mène à ce lien. L'élève y saisit son nom et
+         son prénom, puis enregistre&nbsp;: il apparaît aussitôt ci-dessous.</p>
+      <span class="joinbox-label">Inscrits</span>
+      <span class="joincode" id="count">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="panel-head">
+    <h2>Inscrits</h2>
+    <span class="pill" id="live-stamp">connexion…</span>
+  </div>
+  <div class="tablewrap">
+    <table class="table">
+      <thead><tr><th>Nom</th><th>Prénom</th><th>Enregistré le</th><th></th></tr></thead>
+      <tbody id="entries"></tbody>
+    </table>
+  </div>
+  <p class="muted" id="empty" hidden>Personne ne s'est encore inscrit.</p>
+  <p class="hint">Mise à jour automatique toutes les 3 secondes, par ordre
+     alphabétique.</p>
+</div>
+
+{# Vue de projection : le QR code en grand, le nom de la liste et le
+   nombre d'inscrits, lisibles du fond de la salle. #}
+<div class="projection" id="projection" hidden>
+  <h1>{{ roster['title'] }}</h1>
+  <p class="projection-hint">Flashez le QR code, puis indiquez votre nom et votre prénom.</p>
+  <div class="roster-qr" id="qr-big" data-url="{{ join_url }}"
+       role="img" aria-label="QR code menant à la page d'inscription"></div>
+  <p class="projection-url mono">{{ join_url }}</p>
+  <p class="projection-count" id="count-big"></p>
+  <button type="button" class="ghost" id="unproject">Fermer (Échap)</button>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.ROSTER_URL = "{{ url_for('roster.api_entries', roster_id=roster['id']) }}";
+  window.ROSTER_DELETE = "{{ url_for('roster.delete_entry', roster_id=roster['id'], entry_id=0) }}";
+</script>
+<script src="{{ url_for('static', filename='js/vendor/qrcode-generator-1.4.4.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_roster.js') }}"></script>
+{% endblock %}

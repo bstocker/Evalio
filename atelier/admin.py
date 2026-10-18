@@ -191,8 +191,10 @@ def dashboard():
     # Module puis niveau : l'enseignant choisit d'abord un sujet, ensuite
     # une difficulte, plutot que de lire dix-huit intitules d'affilee.
     hidden = hidden_modules()
+    # Import tardif : roster s'appuie sur ce module-ci pour l'authentification.
+    from . import roster
     return render_template(
-        "admin_dashboard.html", sessions=sessions,
+        "admin_dashboard.html", sessions=sessions, rosters=roster.listing(),
         catalogue=ex.catalogue(hidden), levels=ex.LEVELS,
         qcm_key=ex.QCM_CHAPTER_KEY,
         # Un QCM importe se supprime vraiment : sa confirmation le dit.

@@ -92,10 +92,11 @@ def create_app(config=None):
     db.init_db(app)
     app.teardown_appcontext(db.close_db)
 
-    from . import admin, generation, qcm, student
+    from . import admin, generation, qcm, roster, student
     app.register_blueprint(student.bp)
     app.register_blueprint(admin.bp)
     app.register_blueprint(generation.bp)
+    app.register_blueprint(roster.bp)
 
     # Les modules de QCM importes vivent dans la base, pas dans le code.
     # Plusieurs processus servent l'application : chacun doit voir l'import
@@ -109,6 +110,6 @@ def create_app(config=None):
         # Les pages de l'enseignant voient un import a la requete
         # suivante. Les sondages de l'epreuve, eux, se contentent d'une
         # verification par intervalle : ils sont cent fois plus nombreux.
-        qcm.sync(throttle=request.blueprint == "student")
+        qcm.sync(throttle=request.blueprint in ("student", "roster"))
 
     return app

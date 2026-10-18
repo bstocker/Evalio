@@ -83,6 +83,42 @@
 {% if error %}<p class="alert">{{ error }}</p>{% endif %}
 
 <div class="card">
+  <h1>Listes de classe</h1>
+  <p class="muted">Projetez un QR code&nbsp;: chaque élève le flashe avec son
+     téléphone, puis saisit son nom et son prénom. Vous gardez la liste et
+     pouvez l'exporter au format Excel.</p>
+  <form method="post" action="{{ url_for('roster.create') }}" class="form-row">
+    <label class="grow">Nom de la liste
+      <input name="title" maxlength="120" placeholder="B2 CDA" required>
+    </label>
+    <button type="submit" class="primary">Créer et afficher le QR code</button>
+  </form>
+  {% if rosters %}
+  <div class="tablewrap">
+    <table class="table">
+      <thead><tr><th>Liste</th><th>Inscrits</th><th>Créée le</th>
+                 <th>Créée par</th><th>État</th><th></th></tr></thead>
+      <tbody>
+        {% for r in rosters %}
+        <tr>
+          <td class="strong">{{ r['title'] }}</td>
+          <td>{{ r['entries'] }}</td>
+          <td class="mono">{{ r['created_at']|local_date }}</td>
+          <td class="muted">{{ r['created_by'] or '—' }}</td>
+          <td><span class="pill {{ 'ok' if r['status'] == 'open' }}">{{ 'ouverte' if r['status'] == 'open' else 'close' }}</span></td>
+          <td class="row-actions">
+            <a class="ghost" href="{{ url_for('roster.view', roster_id=r['id']) }}">Ouvrir</a>
+            <a class="ghost" href="{{ url_for('roster.export_xlsx', roster_id=r['id']) }}">Excel</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
   <h1>Nouvelle session</h1>
   <form method="post" action="{{ url_for('admin.create_session') }}" class="stack">
     <div class="form-row">

@@ -1,5 +1,6 @@
 """Tests de bout en bout : session, exercices, penalites, notation."""
 
+import datetime
 import io
 import ipaddress
 import itertools
@@ -3246,6 +3247,160 @@ class GenerationTest(unittest.TestCase):
         self.assertIn("Les pointeurs", html)
         self.assertIn("https://github.com/moi/evalio/issues/42", html)
         self.assertIn("Compléter, Trouver le bug", html)
+
+
+class RosterTest(unittest.TestCase):
+    """Listes de classe : un QR code, un nom, un prenom, un classeur."""
+
+    def setUp(self):
+        fd, self.path = tempfile.mkstemp(suffix=".sqlite")
+        os.close(fd)
+        self.app = create_app({
+            "TESTING": True, "DATABASE": self.path, "SECRET_KEY": "test",
+            "ADMIN_USER": "prof", "ADMIN_PASSWORD": "secret",
+        })
+        self.admin = self.app.test_client()
+        self.admin.post("/admin/login",
+                        data={"username": "prof", "password": "secret"})
+
+    def tearDown(self):
+        for suffix in ("", "-wal", "-shm"):
+            try:
+                os.remove(self.path + suffix)
+            except OSError:
+                pass
+
+    def make_roster(self, title="B2 CDA"):
+        resp = self.admin.post("/admin/listes", data={"title": title})
+        roster_id = int(resp.headers["Location"].rstrip("/").split("/")[-1])
+        page = self.admin.get("/admin/listes/%d" % roster_id) \
+                         .get_data(as_text=True)
+        url = re.search(r'data-url="([^"]+)"', page).group(1)
+        return roster_id, urllib.parse.urlparse(url).path
+
+    def register(self, path, last="Lovelace", first="Ada"):
+        return self.app.test_client().post(
+            path, data={"last_name": last, "first_name": first})
+
+    def entries(self, roster_id):
+        return self.admin.get("/admin/api/listes/%d" % roster_id).get_json()
+
+    def test_the_dashboard_offers_lists_above_new_session(self):
+        page = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertLess(page.index("Listes de classe"),
+                        page.index("Nouvelle session"))
+
+    def test_a_student_registers_from_the_qr_link(self):
+        roster_id, path = self.make_roster()
+        self.assertTrue(path.startswith("/l/"))
+        page = self.app.test_client().get(path).get_data(as_text=True)
+        self.assertIn("B2 CDA", page)
+        self.assertIn("Enregistrer", page)
+
+        page = self.register(path, "  Lovelace ", " Ada  ").get_data(as_text=True)
+        self.assertIn("votre nom est", page)
+        data = self.entries(roster_id)
+        self.assertEqual(data["count"], 1)
+        entry = data["entries"][0]
+        self.assertEqual((entry["last_name"], entry["first_name"]),
+                         ("Lovelace", "Ada"))
+        # Date et heure, a la francaise.
+        self.assertRegex(entry["at"], r"^\d\d/\d\d/\d{4} \d\d:\d\d:\d\d$")
+
+    def test_registering_twice_keeps_one_line(self):
+        roster_id, path = self.make_roster()
+        self.register(path)
+        page = self.register(path, "LOVELACE", "ada").get_data(as_text=True)
+        self.assertIn("figurait déjà", page)
+        self.assertEqual(self.entries(roster_id)["count"], 1)
+
+    def test_names_are_required(self):
+        roster_id, path = self.make_roster()
+        page = self.register(path, "Lovelace", "  ").get_data(as_text=True)
+        self.assertIn("obligatoires", page)
+        self.assertEqual(self.entries(roster_id)["count"], 0)
+
+    def test_a_closed_list_refuses_then_reopens(self):
+        roster_id, path = self.make_roster()
+        self.admin.post("/admin/listes/%d/close" % roster_id)
+        page = self.register(path).get_data(as_text=True)
+        self.assertIn("close", page)
+        self.assertEqual(self.entries(roster_id)["count"], 0)
+        self.admin.post("/admin/listes/%d/open" % roster_id)
+        self.register(path)
+        self.assertEqual(self.entries(roster_id)["count"], 1)
+
+    def test_an_unknown_link_says_so(self):
+        resp = self.app.test_client().get("/l/ZZZZZZ")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Liste introuvable", resp.get_data(as_text=True))
+
+    def test_the_list_is_kept_and_an_entry_can_be_removed(self):
+        roster_id, path = self.make_roster()
+        self.register(path, "Lovelace", "Ada")
+        self.register(path, "Hopper", "Grace")
+        data = self.entries(roster_id)
+        # Ordre alphabetique, celui d'une liste d'appel.
+        self.assertEqual([e["last_name"] for e in data["entries"]],
+                         ["Hopper", "Lovelace"])
+        page = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertIn("B2 CDA", page)
+        self.admin.post("/admin/listes/%d/entrees/%d/delete"
+                        % (roster_id, data["entries"][0]["id"]))
+        self.assertEqual(self.entries(roster_id)["count"], 1)
+
+    def test_deleting_a_list_removes_its_entries(self):
+        roster_id, path = self.make_roster()
+        self.register(path)
+        self.admin.post("/admin/listes/%d/delete" % roster_id)
+        self.assertEqual(
+            self.admin.get("/admin/listes/%d" % roster_id).status_code, 404)
+        conn = sqlite3.connect(self.path)
+        self.assertEqual(
+            conn.execute("SELECT COUNT(*) FROM roster_entry").fetchone()[0], 0)
+        conn.close()
+
+    def test_excel_export(self):
+        from openpyxl import load_workbook
+        roster_id, path = self.make_roster()
+        self.register(path, "Lovelace", "Ada")
+        self.register(path, "=1+1", "Bob")      # restera du texte
+        resp = self.admin.get("/admin/listes/%d/export.xlsx" % roster_id)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("liste-B2_CDA.xlsx", resp.headers["Content-Disposition"])
+        sheet = load_workbook(io.BytesIO(resp.data)).active
+        rows = list(sheet.iter_rows(values_only=True))
+        self.assertEqual(rows[0], ("Nom", "Prénom",
+                                   "Date et heure d'enregistrement"))
+        self.assertEqual([r[:2] for r in rows[1:]],
+                         [("=1+1", "Bob"), ("Lovelace", "Ada")])
+        self.assertEqual(sheet.cell(2, 1).data_type, "s")
+        self.assertIsInstance(rows[1][2], datetime.datetime)
+
+    def test_the_teacher_pages_require_login(self):
+        roster_id, path = self.make_roster()
+        anon = self.app.test_client()
+        self.assertEqual(anon.get("/admin/listes/%d" % roster_id).status_code,
+                         302)
+        self.assertEqual(
+            anon.get("/admin/api/listes/%d" % roster_id).status_code, 401)
+        self.assertEqual(anon.get("/admin/listes/%d/export.xlsx"
+                                  % roster_id).status_code, 302)
+        self.assertEqual(anon.post("/admin/listes",
+                                   data={"title": "X"}).status_code, 302)
+
+    def test_a_list_is_capped(self):
+        from atelier import roster
+        roster_id, path = self.make_roster()
+        saved, roster.MAX_ENTRIES = roster.MAX_ENTRIES, 2
+        try:
+            for i in range(3):
+                page = self.register(path, "Eleve%d" % i, "Test") \
+                           .get_data(as_text=True)
+        finally:
+            roster.MAX_ENTRIES = saved
+        self.assertIn("complète", page)
+        self.assertEqual(self.entries(roster_id)["count"], 2)
 
 
 if __name__ == "__main__":
