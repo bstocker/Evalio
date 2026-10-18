@@ -772,3 +772,36 @@ details[open] > .module-head::before { transform: rotate(90deg); }
                padding: .35rem .6rem; border-radius: 8px; background: var(--surface-0); }
 .doc-list .ghost { margin-left: auto; padding: .2rem .55rem; font-size: .8rem; }
 .doc-list[hidden] { display: none; }
+
+/* ---------- Listes de classe ---------- */
+
+.card > .form-row + .tablewrap { margin-top: 1.25rem; }
+
+/* Le QR code garde un fond blanc dans les deux themes : un lecteur ne
+   lit pas des modules clairs sur fond sombre. */
+.roster-share {
+  display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;
+  background: var(--surface-0); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.25rem;
+}
+.roster-qr {
+  width: 220px; flex: none; background: #fff; border-radius: 8px;
+  line-height: 0;
+}
+.roster-qr svg { width: 100%; height: auto; display: block; }
+
+/* Vue de projection : tout l'ecran, lisible du fond de la salle. */
+.projection {
+  position: fixed; inset: 0; z-index: 100; overflow: auto;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: .75rem; padding: 2rem 1rem;
+  background: var(--surface-1); text-align: center;
+}
+.projection h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0; }
+.projection .roster-qr { width: min(62vh, 86vw); }
+.projection-hint { font-size: clamp(1.1rem, 2.2vw, 1.6rem); margin: 0;
+                   color: var(--text-secondary); }
+.projection-url { font-size: clamp(.9rem, 1.6vw, 1.3rem); margin: 0;
+                  word-break: break-all; }
+.projection-count { font-size: clamp(1.3rem, 2.6vw, 2rem); font-weight: 700;
+                    margin: 0; }

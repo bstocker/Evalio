@@ -344,6 +344,22 @@ Dans la base — tables `qcm_module` et `qcm_question` — et non dans le code :
 
 Plusieurs processus servent l'application, et un import fait dans l'un doit être vu par les autres. `qcm.sync()` compare donc à chaque requête une **empreinte** de la base (nombre de modules, nombre de questions, dernier identifiant) au catalogue chargé, et ne rebâtit le registre que lorsqu'elle a changé. Le cas courant ne coûte qu'une requête.
 
+### Les listes de classe
+
+Pour recueillir les noms et prénoms d'une classe, sans session d'exercices : la carte **Listes de classe**, en tête de l'espace enseignant, juste au-dessus de **Nouvelle session**.
+
+1. Donnez un nom à la liste (« B2 CDA ») et cliquez sur **Créer et afficher le QR code**.
+2. **Projeter le QR code** l'affiche en plein écran, lisible du fond de la salle, avec le nombre d'inscrits. Échap ferme la projection.
+3. Chaque élève flashe le QR code, saisit son nom et son prénom, puis **Enregistrer**. Pas de code à taper, pas de compte : la page tient sur un téléphone.
+4. Les inscrits apparaissent sur votre page en quelques secondes, par ordre alphabétique, avec la **date et l'heure d'enregistrement**. Un bouton **Retirer** efface une ligne fantaisiste.
+5. **Export Excel** télécharge le classeur : nom, prénom, date et heure.
+
+La liste est **conservée** : on la retrouve dans la carte **Listes de classe**, avec son effectif. **Clore la liste** ferme les inscriptions sans rien effacer, **Rouvrir** les rouvre. Seul **Supprimer** l'efface, avec ses inscrits.
+
+Quelques garde-fous : un élève qui valide deux fois n'apparaît qu'une fois (casse ignorée), une liste ne dépasse pas 500 inscrits, et un nom saisi comme `=1+1` reste du texte dans le classeur, pas une formule. Les heures sont stockées en UTC et affichées à l'heure de Paris.
+
+Le QR code est dessiné dans le navigateur de l'enseignant par `qrcode-generator` (Kazuhiko Arase, licence MIT), copié dans `atelier/static/js/vendor/` : aucune dépendance Python de plus à installer sur l'hébergement.
+
 ### Les demandes d'exercices
 
 La page **Demandes d'exercices** de l'espace enseignant fait écrire des exercices à partir de vos documents de cours. Vous choisissez le nombre d'exercices, leur nature (compléter, prédire, trouver le bug, QCM) et leur rangement (un chapitre existant ou un nouveau), vous déposez vos documents (PDF, Word, PowerPoint, images, texte, code…) et vous envoyez.
@@ -668,6 +684,11 @@ Les **tables** nouvelles, elles, n'ont besoin de rien : `CREATE TABLE IF NOT EXI
 | `/demandes/<id>/documents.zip` | **clé partagée** | Documents d'une demande, pour l'Action |
 | `/demandes/<id>/termine` | **clé partagée** | Fin du travail de l'Action : supprime les documents (POST) |
 | `/admin/sessions/<id>/export.csv` | enseignant | Notes au format CSV (séparateur `;`) |
+| `/l/<code>` | public | **Page du QR code** d'une liste de classe : nom, prénom, Enregistrer |
+| `/admin/listes` | enseignant | Créer une liste de classe (POST) |
+| `/admin/listes/<id>` | enseignant | QR code, projection, inscrits en direct, clore, rouvrir, supprimer |
+| `/admin/api/listes/<id>` | enseignant | Les inscrits, relus toutes les 3 s |
+| `/admin/listes/<id>/export.xlsx` | enseignant | La liste au format Excel |
 
 ### Structure du code
 
@@ -680,12 +701,13 @@ outils/diag_base.py     Mode de journalisation et disque de la base déployée
 atelier/
   __init__.py           Fabrique d'application et configuration
   db.py                 Connexion SQLite, une par requête
-  schema.sql            Schéma (teacher, session, student, task, incident, qcm_*)
+  schema.sql            Schéma (teacher, session, student, task, incident, qcm_*, roster*)
   accounts.py           Comptes : l'administrateur, et les profils qu'il cree
   engine.py             Socle du moteur : structures, fabriques, correction
   exercises.py          Catalogue : chapitres, modules, registre
   qcm.py                Chapitre QCM : import Excel, modèle, rechargement
   generation.py         Demandes d'exercices : issue GitHub, documents éphémères
+  roster.py             Listes de classe : QR code, inscriptions, export Excel
   modules/              Un fichier par module d'exercices
     boucles.py  conditions.py  chaines.py
     tableaux.py  recursif.py   arguments.py
@@ -708,6 +730,8 @@ atelier/
     js/admin_compose.js Composition d'une session : plis et sélections
     js/admin_preview.js Fiche d'un exercice, côté enseignant
     js/admin_live.js    Suivi direct (interrogation toutes les 5 s)
+    js/admin_roster.js  Liste de classe : QR code, projection, inscrits
+    js/vendor/          qrcode-generator (MIT), dessin du QR code
 test_atelier.py         Tests de bout en bout
 .env                    Genere par le deploiement, jamais versionne
 ```
