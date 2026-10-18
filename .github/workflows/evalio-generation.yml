@@ -4,7 +4,7 @@ name: Demande d'exercices (Claude Code)
 # en deux temps :
 #
 #   generate  telecharge les documents de l'enseignant, laisse Claude Code
-#             ecrire le module, puis fait supprimer les documents. Claude lit
+#             ecrire le module. Claude lit
 #             des documents non fiables et peut executer du code (python,
 #             gcc) : ce job n'a donc qu'un jeton en LECTURE. Claude ne
 #             committe, ne pousse et ne publie rien ; le job emporte son
@@ -12,6 +12,9 @@ name: Demande d'exercices (Claude Code)
 #   publish   sans Claude : verifie que le patch ne touche que ce qu'il doit,
 #             relance lui-meme les tests, puis pousse la branche et ouvre la
 #             PR. Il ne croit pas Claude sur parole.
+#   finish    fait supprimer les documents une fois la PR ouverte (ou le
+#             refus poste). Sur un echec, il les garde et le dit dans
+#             l'issue : « Re-run all jobs » relance alors la demande.
 #
 # Rien n'est deploye : seule la fusion de la PR, par un humain, declenche le
 # workflow de deploiement.
@@ -227,26 +230,6 @@ jobs:
           path: ${{ runner.temp }}/resultat/
           retention-days: 3
 
-      - name: Delete documents
-        # Toujours, que le travail ait reussi ou non : les documents ne
-        # servent qu'a cette construction.
-        if: always() && steps.demande.outputs.id != ''
-        shell: bash
-        env:
-          DOCS_KEY: ${{ secrets.ATELIER_DOCS_KEY }}
-          SITE: ${{ secrets.PA_WEBAPP_DOMAIN }}
-          ID: ${{ steps.demande.outputs.id }}
-        run: |
-          rm -rf .evalio-docs
-          status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
-            -H "Authorization: Bearer ${DOCS_KEY}" \
-            "https://${SITE}/demandes/${ID}/termine" || true)"
-          if [[ "$status" != "200" ]]; then
-            echo "::warning::Suppression des documents refusee (HTTP ${status}). Ils seront effaces au plus tard 7 jours apres le depot."
-          else
-            echo "Documents supprimes du serveur."
-          fi
-
   publish:
     # Aucun Claude ici, aucun document : le seul job qui ecrit sur le depot
     # ne traite que le patch, et le verifie avant.
@@ -337,13 +320,51 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git commit -q -m "$title" -m "Demande d'exercices n°${ID} (issue #${ISSUE})."
-          git push -u origin "$branch"
+          # --force : une demande relancee reecrit sa propre branche.
+          git push --force -u origin "$branch"
           gh pr create --head "$branch" --title "$title" --body-file "$body"
 
+  finish:
+    # Les documents ne servent qu'a cette construction. Une fois la PR
+    # ouverte, ou la demande refusee par Claude, ils sont supprimes. Sur un
+    # echec, ils restent sur le serveur (7 jours au plus apres le depot) :
+    # « Re-run all jobs » relance la demande sans rien redeposer.
+    needs: [generate, publish]
+    if: always() && needs.generate.outputs.id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write          # commenter l'issue
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ID: ${{ needs.generate.outputs.id }}
+      ISSUE: ${{ github.event.issue.number }}
+
+    steps:
+      - name: Delete documents
+        if: needs.publish.result == 'success'
+        shell: bash
+        env:
+          DOCS_KEY: ${{ secrets.ATELIER_DOCS_KEY }}
+          SITE: ${{ secrets.PA_WEBAPP_DOMAIN }}
+        run: |
+          status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer ${DOCS_KEY}" \
+            "https://${SITE}/demandes/${ID}/termine" || true)"
+          if [[ "$status" != "200" ]]; then
+            echo "::warning::Suppression des documents refusee (HTTP ${status}). Ils seront effaces au plus tard 7 jours apres le depot."
+          else
+            echo "Documents supprimes du serveur."
+          fi
+
       - name: Report a failure on the issue
-        if: failure()
+        if: needs.publish.result != 'success'
         shell: bash
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ETAPE: ${{ needs.generate.result != 'success' && 'la génération du module' || 'les contrôles du module produit (fichiers hors de son domaine, ou tests en échec)' }}
         run: |
-          gh issue comment "$ISSUE" --body "La génération n'a pas abouti : le module produit n'a pas passé les contrôles du workflow (fichiers hors de son domaine, ou tests en échec). Détail : ${RUN_URL}"
+          gh issue comment "$ISSUE" --body "La demande n'a pas abouti : échec pendant ${ETAPE}. Détail : ${RUN_URL}
+
+          Les documents restent sur le serveur d'Evalio, au plus tard 7 jours après le dépôt. Pour relancer la demande sans rien redéposer : ouvrir ce lien, puis **Re-run jobs › Re-run all jobs**."

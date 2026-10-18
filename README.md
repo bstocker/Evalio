@@ -372,10 +372,12 @@ flowchart LR
   B --> C[Action : Claude Code]
   C --> D[Pull request]
   D -->|relue et fusionnée| E[Déploiement]
-  C -.->|fin du travail| F[Documents supprimés]
+  D -.->|PR ouverte| F[Documents supprimés]
 ```
 
-**Les documents ne quittent le serveur que pour l'Action.** Le dépôt est public, et l'issue avec lui : elle ne porte que la demande et son numéro, jamais les documents ni de lien vers eux. L'Action les télécharge avec une clé partagée, `ATELIER_DOCS_KEY`, connue d'elle et de l'application seules — Claude Code, qui lit des documents non fiables, ne la voit pas. Les documents sont supprimés du serveur à la fin du travail, réussi ou non, et au plus tard **7 jours** après le dépôt.
+**Les documents ne quittent le serveur que pour l'Action.** Le dépôt est public, et l'issue avec lui : elle ne porte que la demande et son numéro, jamais les documents ni de lien vers eux. L'Action les télécharge avec une clé partagée, `ATELIER_DOCS_KEY`, connue d'elle et de l'application seules — Claude Code, qui lit des documents non fiables, ne la voit pas. Les documents sont supprimés du serveur dès que la pull request est ouverte (ou que Claude a refusé la demande), et au plus tard **7 jours** après le dépôt.
+
+**Une demande qui échoue se relance sans rien redéposer.** Sur un échec, les documents restent sur le serveur, et l'Action le signale en commentaire de l'issue, avec le lien du run : il suffit d'y cliquer **Re-run jobs › Re-run all jobs**. Passé 7 jours, les documents sont effacés et la demande est à refaire.
 
 #### Mise en place
 
@@ -682,7 +684,7 @@ Les **tables** nouvelles, elles, n'ont besoin de rien : `CREATE TABLE IF NOT EXI
 | `/admin/historique` | enseignant | Sessions closes, moyennes, export |
 | `/admin/demandes` | enseignant | Demander des exercices, suivre les demandes envoyées |
 | `/demandes/<id>/documents.zip` | **clé partagée** | Documents d'une demande, pour l'Action |
-| `/demandes/<id>/termine` | **clé partagée** | Fin du travail de l'Action : supprime les documents (POST) |
+| `/demandes/<id>/termine` | **clé partagée** | PR ouverte ou demande refusée : supprime les documents (POST) |
 | `/admin/sessions/<id>/export.csv` | enseignant | Notes au format CSV (séparateur `;`) |
 | `/l/<code>` | public | **Page du QR code** d'une liste de classe : nom, prénom, Enregistrer |
 | `/admin/listes` | enseignant | Créer une liste de classe (POST) |
