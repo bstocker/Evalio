@@ -27,27 +27,27 @@ from .qcm_docker import _tourner
 # peut tomber sur n'importe lequel en premier.
 INTITULE = ("The following exercises are designed to help you make the most "
             "of your revision sessions. You answer the questions, and if you "
-            "get a wrong answer, you will be shown the correct answer and "
-            "directed to the relevant chapter to review if you wish to "
-            "improve your understanding of the course material.")
+            "get a wrong answer, you will be directed to the relevant part of "
+            "the course to review, so that you can improve your understanding "
+            "of the course material.")
 
 # Lecture d'une fiche à trous, rappelée sur chacune.
-FICHE = ("La fiche associe à chaque **problème posé** la réponse que le "
-         "système lui a apportée. La sortie à reproduire donne, pour chaque "
-         "ligne, l'**année**, la **nature** de cette réponse et la "
-         "**partie du cours** qui la traite : en cas d'erreur, comparez les "
-         "lignes pour savoir quelle partie relire.")
+FICHE = ("The sheet pairs each **problem raised** with the response the "
+         "system gave to it. For each line, the output to reproduce gives "
+         "the **year**, the **nature** of that response and the **part of "
+         "the course** that covers it: if you make a mistake, compare the "
+         "lines to find out which part to review.")
 
 # Parties du cours de la séance 2, telles que les numérotent les
 # diapositives.
 PARTIES = {
-    "I": "Avant 1945 : de l'assistance à l'assurance sociale",
-    "II": "1944-1946 : le moment fondateur",
-    "III": "1958-1975 : la construction du système hospitalier",
-    "IV": "1980-1996 : la grande question de la régulation",
-    "V": "1999-2016 : universalisation, droits du patient et parcours",
-    "VI": "2018-2020 : des structures aux parcours",
-    "VII": "Ce que l'histoire permet de comprendre (les dix principes)",
+    "I": "Before 1945: from social assistance to social insurance",
+    "II": "1944-1946: the founding moment",
+    "III": "1958-1975: building the hospital system",
+    "IV": "1980-1996: the great question of regulation",
+    "V": "1999-2016: universal coverage, patients' rights and care pathways",
+    "VI": "2018-2020: from structures to care pathways",
+    "VII": "What history helps us understand (the ten principles)",
 }
 
 # Les réponses que l'histoire a apportées : clé -> (texte du menu, année,
@@ -55,64 +55,66 @@ PARTIES = {
 # entrée à l'autre : deux réponses de la même année et de la même partie
 # (LFSS, ONDAM, ARH) ne doivent pas produire la même ligne.
 FAITS = {
-    "assistance": ("l'assistance médicale gratuite", "1893",
-                   "aide aux malades privés de ressources", "I.3"),
-    "accidents": ("la loi sur les accidents du travail", "1898",
-                  "risque professionnel mutualisé", "I.4"),
-    "retraites": ("la loi sur les retraites ouvrières et paysannes", "1910",
-                  "premier régime de retraite interprofessionnel", "I.6"),
-    "assurances": ("les assurances sociales", "1928-1930",
-                   "assurance obligatoire de certains salariés", "I.7"),
-    "famille": ("les allocations familiales", "1932",
-                "régime obligatoire financé par les employeurs", "I.8"),
-    "cnr": ("le programme du CNR", "1944",
-            "plan de sécurité sociale annoncé", "II.1"),
-    "ordonnances": ("les ordonnances d'octobre 1945", "1945",
-                    "création de la Sécurité sociale", "II.4"),
-    "preambule": ("le Préambule de la Constitution", "1946",
-                  "santé garantie par la Nation", "II.7"),
-    "chu": ("les CHU (réforme Debré)", "1958",
-            "soin + enseignement + recherche", "III.2"),
-    "branches": ("les branches de la Sécurité sociale", "1967",
-                 "séparation financière des grands risques", "III.3"),
-    "carte": ("la carte sanitaire", "1970",
-              "besoins d'équipement selon la population", "III.4"),
-    "convention": ("la convention médicale nationale", "1971",
-                   "tarifs négociés avec les médecins libéraux", "III.5"),
-    "medicosocial": ("la loi sur le secteur social et médico-social", "1975",
-                     "personnes âgées, handicap, accompagnement", "III.6"),
-    "prix_journee": ("le prix de journée", "avant 1983",
-                     "paiement selon la durée du séjour", "IV.2"),
-    "budget_global": ("le budget global", "1983-1984",
-                      "enveloppe annuelle par établissement", "IV.2"),
-    "csg": ("la CSG", "1990",
-            "prélèvement sur l'ensemble des revenus", "IV.3"),
-    "sros": ("les SROS", "1991",
-             "planification régionale par activité", "IV.4"),
-    "lfss": ("la LFSS", "1996",
-             "vote annuel du Parlement", "IV.5"),
-    "ondam": ("l'ONDAM", "1996",
-              "trajectoire de dépense fixée à l'avance", "IV.5"),
-    "arh": ("les ARH", "1996",
-            "pilotage régional de l'offre hospitalière", "IV.5"),
-    "cmu": ("la CMU", "1999",
-            "couverture des résidents sans couverture obligatoire", "V.1"),
-    "droits": ("la loi sur les droits des patients", "2002",
-               "information, dignité, participation", "V.2"),
-    "traitant": ("le médecin traitant", "2004",
-                 "parcours de soins coordonné", "V.3"),
-    "t2a": ("la T2A", "2004",
-            "financement selon l'activité réalisée", "V.4"),
-    "ars": ("les ARS (loi HPST)", "2009-2010",
-            "pilote régional unique de la santé", "V.5"),
-    "puma": ("la PUMa", "2016",
-             "droit personnel : travail ou résidence stable", "V.6"),
-    "ght": ("les GHT", "2016",
-            "stratégie de soins commune et graduée", "V.7"),
-    "ma_sante": ("Ma Santé 2022", "2018",
-                 "des structures aux parcours", "VI.1"),
-    "segur": ("le Ségur de la santé", "2020",
-              "revalorisation, investissement, numérique", "VI.3"),
+    "assistance": ("free medical assistance (assistance médicale gratuite)",
+                   "1893", "aid for sick people without resources", "I.3"),
+    "accidents": ("the law on industrial accidents", "1898",
+                  "occupational risk pooled", "I.4"),
+    "retraites": ("the law on workers' and farmers' pensions", "1910",
+                  "first cross-industry pension scheme", "I.6"),
+    "assurances": ("the social insurance laws (assurances sociales)",
+                   "1928-1930",
+                   "compulsory insurance for some employees", "I.7"),
+    "famille": ("family allowances", "1932",
+                "compulsory scheme funded by employers", "I.8"),
+    "cnr": ("the CNR programme (National Council of the Resistance)",
+            "1944", "social security plan announced", "II.1"),
+    "ordonnances": ("the ordonnances of October 1945", "1945",
+                    "creation of the Sécurité sociale", "II.4"),
+    "preambule": ("the Preamble to the 1946 Constitution", "1946",
+                  "health guaranteed by the Nation", "II.7"),
+    "chu": ("the CHU, university hospitals (Debré reform)", "1958",
+            "care + teaching + research", "III.2"),
+    "branches": ("the branches of the Sécurité sociale", "1967",
+                 "financial separation of the major risks", "III.3"),
+    "carte": ("the carte sanitaire (health map)", "1970",
+              "equipment needs based on population", "III.4"),
+    "convention": ("the national medical agreement (convention médicale)",
+                   "1971",
+                   "fees negotiated with self-employed doctors", "III.5"),
+    "medicosocial": ("the law on the social and medico-social sector",
+                     "1975", "older people, disability, support", "III.6"),
+    "prix_journee": ("the daily rate (prix de journée)", "before 1983",
+                     "payment based on length of stay", "IV.2"),
+    "budget_global": ("the global budget (budget global)", "1983-1984",
+                      "annual envelope per facility", "IV.2"),
+    "csg": ("the CSG (general social contribution)", "1990",
+            "levy on all forms of income", "IV.3"),
+    "sros": ("the SROS (regional health organisation plans)", "1991",
+             "regional planning by activity", "IV.4"),
+    "lfss": ("the LFSS (Social Security Financing Act)", "1996",
+             "annual vote by Parliament", "IV.5"),
+    "ondam": ("the ONDAM (national health insurance spending target)",
+              "1996", "spending path set in advance", "IV.5"),
+    "arh": ("the ARH (regional hospital agencies)", "1996",
+            "regional steering of hospital provision", "IV.5"),
+    "cmu": ("the CMU (universal health coverage)", "1999",
+            "coverage for residents without compulsory cover", "V.1"),
+    "droits": ("the law on patients' rights", "2002",
+               "information, dignity, participation", "V.2"),
+    "traitant": ("the registered doctor (médecin traitant)", "2004",
+                 "coordinated care pathway", "V.3"),
+    "t2a": ("the T2A (activity-based payment)", "2004",
+            "funding based on activity performed", "V.4"),
+    "ars": ("the ARS, regional health agencies (HPST law)", "2009-2010",
+            "single regional health authority", "V.5"),
+    "puma": ("the PUMa (universal health protection)", "2016",
+             "personal right: work or stable residence", "V.6"),
+    "ght": ("the GHT (regional hospital groups)", "2016",
+            "shared, graduated care strategy", "V.7"),
+    "ma_sante": ("Ma Santé 2022 (My Health 2022)", "2018",
+                 "from structures to care pathways", "VI.1"),
+    "segur": ("the Ségur de la santé", "2020",
+              "pay rises, investment, digital health", "VI.3"),
 }
 
 BLANKS = "abcd"
@@ -121,13 +123,14 @@ BLANKS = "abcd"
 def _ligne(fait):
     """Ce que produit une réponse : son année, sa nature, sa partie."""
     _menu, annee, nature, partie = FAITS[fait]
-    return "%s · %s — cours : partie %s" % (annee, nature, partie)
+    return "%s · %s — course: part %s" % (annee, nature, partie)
 
 
 def _lecon(parties):
     return (INTITULE,
-            "Cours à revoir : " + " ; ".join(
-                "partie %s, « %s »" % (p, PARTIES[p]) for p in parties) + ".",
+            "Where to look in the course: " + "; ".join(
+                "**Session 2, part %s** — %s" % (p, PARTIES[p])
+                for p in parties) + ".",
             FICHE)
 
 
@@ -143,7 +146,7 @@ def fiche(key, name, brief, why, parties, lignes, level):
     for rang, (probleme, bonne, *voisines) in enumerate(lignes):
         blank = BLANKS[rang]
         tpl.append("%d. %s\n   → @%s@" % (rang + 1, probleme, blank))
-        blanks[blank] = ("Réponse au problème %d" % (rang + 1), [
+        blanks[blank] = ("Response to problem %d" % (rang + 1), [
             Option(chr(ord("a") + i), FAITS[fait][0],
                    lambda _p, fait=fait: _ligne(fait))
             for i, fait in enumerate((bonne,) + tuple(voisines))
@@ -159,7 +162,7 @@ def fiche(key, name, brief, why, parties, lignes, level):
         brief=brief,
         why=why,
         lesson=_lecon(parties),
-        tpl="Problème posé\n   → réponse apportée\n\n" + "\n\n".join(tpl),
+        tpl="Problem raised\n   → response given\n\n" + "\n\n".join(tpl),
         blanks=blanks,
         ref={blank: "a" for blank in blanks},
         rows=rows,
@@ -173,149 +176,150 @@ def fiche(key, name, brief, why, parties, lignes, level):
 
 FICHES = (
     fiche(
-        "rev_avant_1945", "Avant 1945 : les premières briques",
-        "Retrouver la loi qui répond à chacun des problèmes de la fin du "
-        "XIXe siècle et de l'entre-deux-guerres.",
-        "La protection passe d'une logique d'assistance à une logique "
-        "d'assurance.",
+        "rev_avant_1945", "Before 1945: the first building blocks",
+        "Find the law that responded to each of the problems of the late "
+        "19th century and the interwar period.",
+        "Protection shifts from a logic of assistance to a logic of "
+        "insurance.",
         ("I",),
-        (("Aider le malade qui ne peut pas payer, sous condition de "
-          "ressources", "assistance", "accidents", "assurances", "famille"),
-         ("Indemniser l'ouvrier blessé sans qu'il ait à prouver la faute de "
-          "l'employeur", "accidents", "assistance", "retraites",
+        (("Helping sick people who cannot pay, subject to a means test",
+          "assistance", "accidents", "assurances", "famille"),
+         ("Compensating injured workers without them having to prove the "
+          "employer was at fault", "accidents", "assistance", "retraites",
           "assurances"),
-         ("Couvrir des salariés de l'industrie et du commerce contre la "
-          "maladie, la maternité, l'invalidité, la vieillesse et le décès",
+         ("Covering employees in industry and commerce against sickness, "
+          "maternity, disability, old age and death",
           "assurances", "retraites", "famille", "ordonnances"),
-         ("Faire entrer la politique familiale dans la protection sociale",
+         ("Bringing family policy into social protection",
           "famille", "assurances", "retraites", "medicosocial")),
         level=3,
     ),
     fiche(
-        "rev_fondation", "1944-1946 : trois textes fondateurs",
-        "Retrouver le texte qui porte chacune des décisions du moment "
-        "fondateur.",
-        "Le CNR fixe l'ambition, 1945 crée les institutions, 1946 en fait "
-        "un droit.",
+        "rev_fondation", "1944-1946: three founding texts",
+        "Find the text behind each of the decisions of the founding "
+        "moment.",
+        "The CNR sets the ambition, 1945 creates the institutions, 1946 "
+        "makes it a right.",
         ("II",),
-        (("Garantir aux citoyens les moyens d'existence quand le travail ne "
-          "le permet plus", "cnr", "ordonnances", "preambule", "assurances"),
-         ("Créer les organismes de sécurité sociale, financés par des "
-          "cotisations et gérés avec les partenaires sociaux",
+        (("Guaranteeing citizens the means of existence when they can no "
+          "longer work", "cnr", "ordonnances", "preambule", "assurances"),
+         ("Creating the social security bodies, funded by contributions "
+          "and run with the social partners",
           "ordonnances", "cnr", "preambule", "branches"),
-         ("Donner un fondement juridique à toute extension ultérieure de la "
-          "couverture", "preambule", "cnr", "ordonnances", "droits")),
+         ("Giving a legal basis to any later extension of coverage",
+          "preambule", "cnr", "ordonnances", "droits")),
         level=3,
     ),
     fiche(
-        "rev_hopital", "1958-1975 : l'hôpital moderne et ses voisins",
-        "Retrouver la réforme qui répond à chacun des problèmes posés par "
-        "une médecine devenue technique, spécialisée et coûteuse.",
-        "Chaque réforme de 1958 à 1975 répond au changement de nature de "
-        "la médecine.",
+        "rev_hopital", "1958-1975: the modern hospital and its neighbours",
+        "Find the reform that responded to each of the problems raised by "
+        "a medicine that had become technical, specialised and costly.",
+        "Each reform from 1958 to 1975 responds to the changing nature of "
+        "medicine.",
         ("III",),
-        (("Former les professionnels et faire de la recherche au sein même "
-          "de l'hôpital", "chu", "carte", "convention", "branches"),
-         ("Pouvoir parler du déficit de la maladie indépendamment de la "
-          "vieillesse et de la famille", "branches", "chu", "budget_global",
-          "lfss"),
-         ("Décider quels équipements installer, où, et pour quelle "
+        (("Training professionals and doing research within the hospital "
+          "itself", "chu", "carte", "convention", "branches"),
+         ("Being able to discuss the sickness deficit separately from old "
+          "age and family", "branches", "chu", "budget_global", "lfss"),
+         ("Deciding which equipment to install, where, and for which "
           "population", "carte", "sros", "chu", "ght"),
-         ("Concilier liberté d'installation et financement socialisé des "
-          "actes", "convention", "traitant", "carte", "medicosocial")),
+         ("Reconciling freedom to set up practice with socialised funding "
+          "of medical acts", "convention", "traitant", "carte",
+          "medicosocial")),
         level=3,
     ),
     fiche(
-        "rev_financer_hopital", "Financer l'hôpital : quarante ans de "
-        "réformes",
-        "Retrouver le mode de financement ou la réforme qui répond à "
-        "chacun des problèmes du financement hospitalier.",
-        "Chaque mode de financement corrige l'effet pervers du précédent, "
-        "et crée le sien.",
+        "rev_financer_hopital", "Funding hospitals: forty years of "
+        "reforms",
+        "Find the funding method or reform that responded to each of the "
+        "problems of hospital funding.",
+        "Each funding method corrects the perverse effect of the previous "
+        "one, and creates its own.",
         ("IV", "V", "VI"),
-        (("Point de départ : financer l'établissement en proportion de la "
-          "durée des séjours", "prix_journee", "budget_global", "t2a",
+        (("Starting point: funding the facility in proportion to the "
+          "length of stays", "prix_journee", "budget_global", "t2a",
           "ondam"),
-         ("Les séjours s'allongent : plus le patient reste, plus "
-          "l'établissement facture", "budget_global", "prix_journee", "t2a",
+         ("Stays get longer: the longer the patient stays, the more the "
+          "facility bills", "budget_global", "prix_journee", "t2a",
           "ondam"),
-         ("Avec une enveloppe annuelle, les moyens se figent et l'activité "
-          "réelle compte à peine", "t2a", "budget_global", "prix_journee",
+         ("With an annual envelope, resources freeze and actual activity "
+          "barely counts", "t2a", "budget_global", "prix_journee",
           "ondam"),
-         ("Le financement à l'activité pousse au volume : on annonce en "
-          "sortir", "segur", "ma_sante", "t2a", "ght")),
+         ("Activity-based funding drives volume: a move away from it is "
+          "announced", "segur", "ma_sante", "t2a", "ght")),
         level=4,
     ),
     fiche(
-        "rev_regulation", "1990-1996 : financer et réguler",
-        "Retrouver l'instrument qui répond à chacun des problèmes de "
-        "financement et de pilotage de 1990 à 1996.",
-        "Comment maintenir un système solidaire tout en maîtrisant la "
-        "croissance de la dépense ?",
+        "rev_regulation", "1990-1996: funding and regulating",
+        "Find the instrument that responded to each of the funding and "
+        "steering problems from 1990 to 1996.",
+        "How can a solidarity-based system be maintained while keeping "
+        "spending growth under control?",
         ("IV",),
-        (("Faire contribuer d'autres revenus que ceux du travail",
+        (("Making income other than earnings from work contribute",
           "csg", "lfss", "ondam", "sros"),
-         ("Donner au Parlement un vote annuel sur les grandes orientations "
-          "financières de la Sécurité sociale", "lfss", "ondam", "csg",
+         ("Giving Parliament an annual vote on the main financial "
+          "orientations of the Sécurité sociale", "lfss", "ondam", "csg",
           "arh"),
-         ("Cesser de constater la dépense après coup", "ondam", "lfss",
-          "budget_global", "csg"),
-         ("Associer l'État et l'assurance maladie pour piloter régionalement "
-          "l'offre hospitalière publique et privée", "arh", "ars", "sros",
+         ("No longer simply recording spending after the fact", "ondam",
+          "lfss", "budget_global", "csg"),
+         ("Bringing the State and health insurance together to steer "
+          "public and private hospital provision at regional level", "arh",
+          "ars", "sros", "ght")),
+        level=4,
+    ),
+    fiche(
+        "rev_universalisation", "1999-2016: universal right, pathways, "
+        "territories",
+        "Find the reform that responded to each of the problems of the "
+        "1999-2016 period.",
+        "Coverage becomes detached from employment; the care pathway "
+        "replaces the isolated medical act.",
+        ("V",),
+        (("Covering legal residents left outside the compulsory schemes",
+          "cmu", "puma", "ordonnances", "droits"),
+         ("Covering every adult in their own name, without dependant "
+          "(ayant droit) status", "puma", "cmu", "droits", "ordonnances"),
+         ("Replacing a series of unconnected medical acts with care "
+          "organised around the patient", "traitant", "t2a", "ght",
+          "convention"),
+         ("Bringing public health, prevention, care and the medico-social "
+          "sector under a single regional authority", "ars", "arh", "sros",
           "ght")),
         level=4,
     ),
     fiche(
-        "rev_universalisation", "1999-2016 : droit universel, parcours, "
-        "territoires",
-        "Retrouver la réforme qui répond à chacun des problèmes de la "
-        "période 1999-2016.",
-        "La couverture se détache de l'emploi, le parcours remplace l'acte "
-        "isolé.",
-        ("V",),
-        (("Couvrir les résidents réguliers restés hors des régimes "
-          "obligatoires", "cmu", "puma", "ordonnances", "droits"),
-         ("Couvrir chaque adulte en son nom propre, sans statut d'ayant "
-          "droit", "puma", "cmu", "droits", "ordonnances"),
-         ("Remplacer une succession d'actes indépendants par un recours "
-          "organisé autour du patient", "traitant", "t2a", "ght",
-          "convention"),
-         ("Réunir sous un seul pilote régional santé publique, prévention, "
-          "soins et médico-social", "ars", "arh", "sros", "ght")),
-        level=4,
-    ),
-    fiche(
-        "rev_principes", "Les principes et leurs décisions datées",
-        "Retrouver la décision datée à laquelle se rattache chacun des "
-        "principes du système français.",
-        "Chaque principe se rattache à une décision datée : c'est ce lien "
-        "que l'examen attend.",
+        "rev_principes", "The principles and their dated decisions",
+        "Find the dated decision to which each of the principles of the "
+        "French system is linked.",
+        "Each principle is linked to a dated decision: that link is what "
+        "the exam expects.",
         ("VII",),
-        (("Principe 1, la solidarité : son héritage central",
+        (("Principle 1, solidarity: its central legacy",
           "ordonnances", "cnr", "preambule", "assurances"),
-         ("Principe 2, la couverture universelle : l'aboutissement du droit",
+         ("Principle 2, universal coverage: the culmination of the right",
           "puma", "cmu", "ordonnances", "preambule"),
-         ("Principe 4, liberté professionnelle mais régulation collective : "
-          "son ancrage", "convention", "traitant", "medicosocial",
+         ("Principle 4, professional freedom but collective regulation: "
+          "its anchor", "convention", "traitant", "medicosocial",
           "budget_global"),
-         ("Principe 7, la territorialisation : son premier instrument",
+         ("Principle 7, territorialisation: its first instrument",
           "carte", "sros", "ars", "ght")),
         level=4,
     ),
     fiche(
-        "rev_aujourdhui", "Du patient acteur au Ségur",
-        "Retrouver la réforme qui répond à chacun des problèmes de la "
-        "période récente.",
-        "Le système cherche à s'organiser autour du patient et de son "
-        "parcours.",
+        "rev_aujourdhui", "From the patient as actor to the Ségur",
+        "Find the reform that responded to each of the problems of the "
+        "recent period.",
+        "The system seeks to organise itself around the patient and their "
+        "care pathway.",
         ("V", "VI"),
-        (("Le patient n'est plus l'objet des soins mais un acteur titulaire "
-          "de droits", "droits", "preambule", "traitant", "cmu"),
-         ("Un système trop cloisonné et trop centré sur les actes face au "
-          "vieillissement et aux maladies chroniques", "ma_sante", "segur",
+        (("The patient is no longer the object of care but an actor who "
+          "holds rights", "droits", "preambule", "traitant", "cmu"),
+         ("A system too compartmentalised and too focused on medical acts "
+          "in the face of ageing and chronic diseases", "ma_sante", "segur",
           "ars", "t2a"),
-         ("Après la crise du Covid-19 : rendre les métiers attractifs et "
-          "investir dans le numérique en santé", "segur", "ma_sante", "ght",
+         ("After the Covid-19 crisis: making health professions attractive "
+          "and investing in digital health", "segur", "ma_sante", "ght",
           "ondam")),
         level=3,
     ),
@@ -330,179 +334,180 @@ FICHES = (
 # partie du cours). Comme dans qcm_docker, la bonne réponse est écrite en
 # premier puis déplacée par `_tourner`.
 QUESTIONS = (
-    ("Qu'est-ce qui distingue la logique d'**assurance** de la logique "
-     "d'**assistance** ?",
-     ("L'accès dépend de l'affiliation, et non des ressources",
-      "L'accès dépend d'un examen des ressources",
-      "Le financement repose principalement sur la collectivité",
-      "L'aide va d'abord à la personne qui ne peut pas payer"),
+    ("What distinguishes the logic of **insurance** from the logic of "
+     "**assistance**?",
+     ("Access depends on affiliation, not on resources",
+      "Access depends on a means test",
+      "Funding relies mainly on the community as a whole",
+      "Aid goes first to the person who cannot pay"),
      0, 3,
-     "L'assurance suit la chaîne cotisation → mutualisation → prestation : "
-     "c'est l'affiliation qui ouvre le droit. Les trois autres propositions "
-     "décrivent l'assistance (besoin → aide).",
+     "Insurance follows the chain contribution → pooling → benefit: it is "
+     "affiliation that opens the right. The other three options describe "
+     "assistance (need → aid).",
      "I.2"),
 
-    ("Erreur fréquente à l'examen : que font, au juste, les ordonnances "
-     "des 4 et 19 octobre 1945 ?",
-     ("Elles créent la Sécurité sociale et généralisent la protection, sans "
-      "l'unifier : les régimes spéciaux subsistent",
-      "Elles unifient toute la protection sociale dans un régime unique",
-      "Elles fondent la couverture sur la résidence et l'impôt, comme le "
-      "modèle de Beveridge",
-      "Elles créent des caisses nationales distinctes pour la maladie, la "
-      "vieillesse et la famille"),
+    ("A common exam mistake: what exactly do the ordonnances of 4 and 19 "
+     "October 1945 do?",
+     ("They create the Sécurité sociale and extend protection widely, "
+      "without unifying it: the special schemes remain",
+      "They unify all social protection into a single scheme",
+      "They base coverage on residence and taxation, as in the Beveridge "
+      "model",
+      "They create separate national funds for sickness, old age and "
+      "family"),
      0, 4,
-     "L'ambition était large, mais plusieurs professions ont voulu garder "
-     "leur propre régime : 1945 généralise sans unifier. Les caisses "
-     "nationales par branche datent des ordonnances de 1967.",
+     "The ambition was broad, but several professions wanted to keep their "
+     "own scheme: 1945 generalises without unifying. The national funds "
+     "per branch date from the ordonnances of 1967.",
      "II.4-II.5"),
 
-    ("Lequel de ces traits du système français est **resté bismarckien** ?",
-     ("La place des partenaires sociaux",
-      "Une part substantielle de financement par l'impôt",
-      "Une forte régulation par l'État",
-      "Une couverture fondée sur la résidence"),
+    ("Which of these features of the French system has **remained "
+     "Bismarckian**?",
+     ("The role of the social partners",
+      "A substantial share of funding through taxation",
+      "Strong regulation by the State",
+      "Coverage based on residence"),
      0, 3,
-     "Restent bismarckiens l'assurance maladie obligatoire, les "
-     "cotisations, la place des partenaires sociaux et la logique "
-     "d'assurance. Les trois autres traits sont devenus beveridgiens.",
-     "VII (zoom sur le principe 3)"),
+     "What remains Bismarckian is compulsory health insurance, "
+     "contributions, the role of the social partners and the insurance "
+     "logic. The other three features have become Beveridgean.",
+     "VII (focus on principle 3)"),
 
-    ("Pourquoi la création de la CSG en 1990 est-elle le glissement le plus "
-     "net vers le modèle de Beveridge ?",
-     ("Elle prélève sur un large ensemble de revenus : une couverture "
-      "universelle appelle un financement universel",
-      "Elle remplace les caisses d'assurance maladie par un service "
-      "national de santé",
-      "Elle fixe chaque année un objectif national de dépenses d'assurance "
-      "maladie",
-      "Elle supprime les cotisations assises sur les salaires"),
+    ("Why is the creation of the CSG in 1990 the clearest shift towards "
+     "the Beveridge model?",
+     ("It is levied on a broad range of income: universal coverage calls "
+      "for universal funding",
+      "It replaces the health insurance funds with a national health "
+      "service",
+      "It sets a national health insurance spending target every year",
+      "It abolishes contributions based on wages"),
      0, 4,
-     "La CSG passe des cotisations sur le travail à un prélèvement sur tous "
-     "les revenus : c'est une fiscalisation **partielle** du financement. "
-     "Les cotisations demeurent, et l'objectif de dépenses est l'ONDAM de "
-     "1996.",
+     "The CSG moves from contributions on earnings to a levy on all "
+     "income: it is a **partial** shift of funding to taxation. "
+     "Contributions remain, and the spending target is the ONDAM of 1996.",
      "IV.3"),
 
-    ("Quel est l'effet pervers reproché au **budget global** des hôpitaux "
-     "(1983-1984) ?",
-     ("Les moyens se figent et l'activité réelle est à peine prise en compte",
-      "Plus le patient reste longtemps, plus l'établissement facture de "
-      "journées",
-      "Il incite au volume et pose la question de la pertinence des actes",
-      "Il laisse la dépense hospitalière sans aucun plafond"),
+    ("What perverse effect is the hospitals' **global budget** "
+     "(1983-1984) criticised for?",
+     ("Resources freeze and actual activity is barely taken into account",
+      "The longer the patient stays, the more days the facility bills",
+      "It encourages volume and raises the question of whether medical "
+      "acts are appropriate",
+      "It leaves hospital spending with no ceiling at all"),
      0, 3,
-     "L'enveloppe annuelle maîtrise la dépense mais ignore l'activité. Le "
-     "séjour qui s'allonge est l'effet pervers du prix de journée ; "
-     "l'incitation au volume, celui de la T2A de 2004.",
+     "The annual envelope controls spending but ignores activity. Longer "
+     "stays are the perverse effect of the daily rate; the incentive to "
+     "volume is that of the T2A of 2004.",
      "IV.2"),
 
-    ("Que change l'ONDAM, créé par le plan Juppé, dans la logique de la "
-     "dépense d'assurance maladie ?",
-     ("On ne constate plus la dépense après coup : on définit à l'avance "
-      "une trajectoire nationale",
-      "Le Parlement vote chaque année les grandes orientations financières "
-      "de la Sécurité sociale",
-      "L'État et l'assurance maladie pilotent ensemble l'offre hospitalière "
-      "régionale",
-      "Chaque établissement reçoit une enveloppe annuelle pour fonctionner"),
+    ("What does the ONDAM, created by the Juppé plan, change in the logic "
+     "of health insurance spending?",
+     ("Spending is no longer recorded after the fact: a national path is "
+      "defined in advance",
+      "Parliament votes every year on the main financial orientations of "
+      "the Sécurité sociale",
+      "The State and health insurance jointly steer regional hospital "
+      "provision",
+      "Each facility receives an annual envelope to operate"),
      0, 4,
-     "L'ONDAM est un objectif fixé à l'avance. Le vote annuel est celui de "
-     "la LFSS, le pilotage régional celui des ARH, l'enveloppe par "
-     "établissement le budget global de 1983-1984.",
+     "The ONDAM is a target set in advance. The annual vote is that of the "
+     "LFSS, regional steering that of the ARH, the envelope per facility "
+     "the global budget of 1983-1984.",
      "IV.5"),
 
-    ("Quelle phrase résume le changement de fondement du droit opéré par la "
-     "CMU (1999) puis la PUMa (2016) ?",
-     ("« Je suis couvert parce que j'appartiens durablement à la communauté "
-      "nationale de résidence. »",
-      "« Je suis couvert parce que j'ai un emploi. »",
-      "« Je suis couvert parce que je n'ai pas de ressources. »",
-      "« Je suis couvert parce que mon employeur cotise pour moi. »"),
+    ("Which sentence sums up the change in the basis of the right brought "
+     "about by the CMU (1999) and then the PUMa (2016)?",
+     ("“I am covered because I belong durably to the national community "
+      "of residence.”",
+      "“I am covered because I have a job.”",
+      "“I am covered because I have no resources.”",
+      "“I am covered because my employer pays contributions for me.”"),
      0, 3,
-     "Le droit cesse de reposer sur l'emploi : la PUMa l'attache au "
-     "travail **ou** à la résidence stable et régulière, ce qui éloigne la "
-     "France du modèle bismarckien pur.",
-     "V.1 et V.6"),
+     "The right no longer rests on employment: the PUMa ties it to work "
+     "**or** to stable and legal residence, which moves France away from "
+     "the pure Bismarckian model.",
+     "V.1 and V.6"),
 
-    ("Selon le cours, quelle leçon de résilience la crise du Covid-19 "
-     "a-t-elle rappelée ?",
-     ("Les marges et les redondances qui paraissaient inefficaces en temps "
-      "normal se sont révélées décisives",
-      "La T2A a permis d'absorber l'afflux de patients sans moyens "
-      "supplémentaires",
-      "Concentrer tous les équipements dans les CHU a suffi à faire face",
-      "Le cloisonnement entre ville, hôpital et médico-social a protégé le "
-      "système"),
+    ("According to the course, what lesson about resilience did the "
+     "Covid-19 crisis bring home?",
+     ("Margins and redundancies that seemed inefficient in normal times "
+      "proved decisive",
+      "The T2A made it possible to absorb the influx of patients without "
+      "additional resources",
+      "Concentrating all equipment in the CHU was enough to cope",
+      "The separation between community care, hospital and the "
+      "medico-social sector protected the system"),
      0, 4,
-     "La crise a montré la mobilisation des professionnels et la capacité "
-     "d'adaptation, mais aussi des fragilités : effectifs, tensions "
-     "hospitalières, coordination, systèmes d'information. Les marges "
-     "jugées inefficaces ont fait la différence.",
+     "The crisis showed the mobilisation of professionals and the capacity "
+     "to adapt, but also weaknesses: staffing, pressure on hospitals, "
+     "coordination, information systems. The margins judged inefficient "
+     "made the difference.",
      "VI.2"),
 
-    ("Pourquoi un CHU n'est-il pas simplement « un très grand hôpital » ?",
-     ("Il associe soin, enseignement et recherche, organisés conjointement "
-      "avec les facultés",
-      "Il est le seul établissement autorisé à accueillir les urgences",
-      "Il est financé directement par l'État, hors assurance maladie",
-      "Il regroupe tous les hôpitaux publics d'un territoire"),
+    ("Why is a CHU not simply “a very large hospital”?",
+     ("It combines care, teaching and research, organised jointly with "
+      "the universities' medical faculties",
+      "It is the only facility authorised to take emergencies",
+      "It is funded directly by the State, outside health insurance",
+      "It brings together all the public hospitals of a territory"),
      0, 3,
-     "L'ordonnance du 30 décembre 1958 (réforme Debré) crée les CHU : "
-     "soin + enseignement + recherche, avec des postes "
-     "hospitalo-universitaires. Le regroupement territorial, ce sont les "
-     "GHT de 2016.",
+     "The ordonnance of 30 December 1958 (Debré reform) creates the CHU: "
+     "care + teaching + research, with joint hospital-university posts. "
+     "Grouping hospitals by territory is the GHT of 2016.",
      "III.2"),
 
-    ("Quelle difficulté, héritée de la loi de 1975, Ma Santé 2022 "
-     "cherche-t-elle encore à résoudre en 2018 ?",
-     ("Trois univers organisés séparément : soins de ville, hôpital et "
-      "médico-social",
-      "L'absence de couverture des résidents sans emploi",
-      "Le paiement des hôpitaux au prix de journée",
-      "L'absence de toute planification des équipements hospitaliers"),
+    ("Which difficulty, inherited from the 1975 law, is Ma Santé 2022 "
+     "still trying to solve in 2018?",
+     ("Three worlds organised separately: community care, hospital and "
+      "the medico-social sector",
+      "The lack of coverage for residents without a job",
+      "Paying hospitals by the daily rate",
+      "The absence of any planning of hospital equipment"),
      0, 4,
-     "Financeurs, tutelles et cultures distincts : la coordination des trois "
-     "univers est le grand sujet des décennies suivantes. Les trois autres "
-     "problèmes ont déjà reçu leur réponse : la carte sanitaire en 1970, le "
-     "budget global en 1983-1984, la CMU en 1999.",
-     "III.6 et VI.1"),
+     "Different funders, supervisory authorities and cultures: "
+     "coordinating these three worlds is the major issue of the following "
+     "decades. The other three problems had already been answered: the "
+     "carte sanitaire in 1970, the global budget in 1983-1984, the CMU in "
+     "1999.",
+     "III.6 and VI.1"),
 
-    ("Que disent les principes 8 (liberté et régulation) et 9 (qualité et "
-     "soutenabilité) du système français ?",
-     ("Ce sont des arbitrages, jamais des solutions : ils sont rejoués à "
-      "chaque réforme",
-      "Ce sont des acquis de 1945 qui n'ont jamais été remis en question",
-      "Ils ont été tranchés une fois pour toutes par le plan Juppé",
-      "Ils ne concernent que l'hôpital public"),
+    ("What do principles 8 (freedom and regulation) and 9 (quality and "
+     "sustainability) say about the French system?",
+     ("They are trade-offs, never solutions: they are played out again "
+      "with every reform",
+      "They are achievements of 1945 that have never been called into "
+      "question",
+      "They were settled once and for all by the Juppé plan",
+      "They concern only public hospitals"),
      0, 4,
-     "Ce qui n'a jamais été remis en question depuis 1945, ce sont la "
-     "solidarité, la mutualisation et l'assurance obligatoire. Les "
-     "principes 8 et 9, eux, sont des tensions permanentes.",
-     "VII (principes 7 à 10)"),
+     "What has never been called into question since 1945 is solidarity, "
+     "pooling and compulsory insurance. Principles 8 and 9, by contrast, "
+     "are permanent tensions.",
+     "VII (principles 7 to 10)"),
 
-    ("Par quel canal le modèle bismarckien nourrit-il directement la "
-     "réflexion française des années 1920 ?",
-     ("L'Alsace-Moselle, revenue à la France après la Première Guerre "
-      "mondiale, avait connu les assurances sociales allemandes",
-      "Le rapport Beveridge, que la France adopte dès sa publication",
-      "Le programme du Conseil national de la Résistance",
-      "Les ordonnances rédigées sous la direction de Pierre Laroque"),
+    ("Through which channel does the Bismarckian model directly feed "
+     "French thinking in the 1920s?",
+     ("Alsace-Moselle, returned to France after the First World War, had "
+      "known the German social insurance system",
+      "The Beveridge report, which France adopts as soon as it is "
+      "published",
+      "The programme of the National Council of the Resistance (CNR)",
+      "The ordonnances drafted under the direction of Pierre Laroque"),
      0, 4,
-     "L'Allemagne de Bismarck bâtit entre 1881 et 1889 le premier grand "
-     "système d'assurance sociale ; l'expérience de l'Alsace-Moselle "
-     "irrigue la réflexion française dès les années 1920. Le rapport "
-     "Beveridge date de 1942, le CNR de 1944, les ordonnances de 1945.",
+     "Bismarck's Germany builds the first major social insurance system "
+     "between 1881 and 1889; the experience of Alsace-Moselle feeds French "
+     "thinking from the 1920s. The Beveridge report dates from 1942, the "
+     "CNR from 1944, the ordonnances from 1945.",
      "I.5"),
 )
 
 
 def _question(rang, question, choices, answer, level, explanation, partie):
     choices, answer = _tourner(choices, answer, rang)
-    explanation = "%s À revoir : partie %s du cours." % (explanation, partie)
+    explanation = "%s Review: part %s of the course." % (explanation, partie)
     pattern = qcm_pattern("rev_qcm_%02d" % rang, rang, question, choices,
                           answer, level, explanation)
-    # « III.6 et VI.1 » -> parties III et VI, pour le rappel en tête.
+    # « III.6 and VI.1 » -> parties III et VI, pour le rappel en tête.
     racines = []
     for racine in re.findall(r"\b([IVX]+)\b", partie):
         if racine not in racines:
@@ -518,8 +523,9 @@ MODULE = Module(
     key="ie3514_s2",
     title="IE3514 - Revision Sheet for Session 2",
     level=4,
-    summary="Construction historique du système de santé français, de "
-            "l'assistance de 1893 au Ségur de 2020 : textes à trous et QCM "
-            "difficiles, chacun renvoyant à la partie du cours à revoir.",
+    summary="The historical construction of the French health system, "
+            "from free medical assistance in 1893 to the Ségur of 2020: "
+            "challenging fill-in sheets and multiple-choice questions, each "
+            "pointing to the part of the course to review.",
     keys=tuple(p.key for p in PATTERNS),
 )

@@ -8,9 +8,8 @@ niveaux de soins, les six piliers de l'OMS et leurs interactions, les
 quatre flux, les dimensions d'évaluation, et le caractère hybride du
 système français.
 
-Le cours est en anglais, les exercices en français : chaque notion garde
-entre parenthèses son nom anglais, celui des diapositives, quand il aide
-à la retrouver.
+Le cours est en anglais : les exercices le sont aussi, avec les termes
+des diapositives, comme l'en-tête demandé par l'enseignant.
 
 Deux formes :
 
@@ -35,9 +34,9 @@ from .qcm_docker import _tourner
 INTITULE = (
     "The following exercises are designed to help you make the most of "
     "your revision sessions. You answer the questions, and if you get a "
-    "wrong answer, you will be shown the correct answer and directed to "
-    "the relevant chapter to review if you wish to improve your "
-    "understanding of the course material."
+    "wrong answer, you will be directed to the relevant part of the "
+    "course to review, so that you can improve your understanding of the "
+    "course material."
 )
 
 # Les parties du cours, sous leur titre de diapositive.
@@ -51,14 +50,14 @@ PARTIES = {
     7: "How do we break down a health system?",
     8: "The building blocks are not silos",
     9: "The four flows we will follow",
-    10: "What makes a health system « good »?",
+    10: "What makes a health system “good”?",
     11: "A first feature of the French system",
 }
 
 
 def revoir(partie, detail=""):
     """Renvoi vers la partie du cours qui porte la réponse."""
-    return "partie %d du cours, « %s »%s" % (
+    return "part %d of the course, “%s”%s" % (
         partie, PARTIES[partie], " — " + detail if detail else "")
 
 
@@ -66,10 +65,10 @@ def lecon(partie, detail=""):
     """Rappel d'une fiche à trous : l'intitulé, la lecture, le renvoi."""
     return (
         INTITULE,
-        "Le **motif à reproduire** donne, pour chaque trou, une propriété "
-        "de la notion attendue, sans la nommer. Choisissez la notion qui "
-        "la possède.",
-        "En cas d'erreur, revoyez la %s." % revoir(partie, detail),
+        "For each blank, the **target** (“Motif à reproduire”) gives a "
+        "property of the expected notion, without naming it. Choose the "
+        "notion that has this property.",
+        "If you get it wrong, review %s." % revoir(partie, detail),
     )
 
 
@@ -99,11 +98,11 @@ def _menu(table, noms=None):
 # Les trois niveaux de prévention, et la promotion de la santé qu'on
 # confond avec la prévention primaire. Chacun avec sa question (partie 5).
 QUESTION_PREVENTION = {
-    "prévention primaire": "« Comment l'empêcher de survenir ? »",
-    "prévention secondaire": "« Comment la détecter à temps ? »",
-    "prévention tertiaire": "« Comment en limiter les conséquences ? »",
-    "promotion de la santé": "« Comment créer des conditions favorables, "
-                             "sans viser une maladie précise ? »",
+    "primary prevention": "“How can we stop it from occurring?”",
+    "secondary prevention": "“How can we detect it in time?”",
+    "tertiary prevention": "“How can we limit its consequences?”",
+    "health promotion": "“How can we create favourable conditions, "
+                        "without targeting a specific disease?”",
 }
 
 
@@ -112,43 +111,43 @@ QUESTION_PREVENTION = {
 # le tabac et l'activité physique sont écartées : le cours les range à la
 # fois dans la promotion et dans la prévention primaire.
 ACTIONS = (
-    ("la vaccination des nourrissons",
-     "la prévention des accidents domestiques",
-     "la distribution de préservatifs"),
-    ("le dépistage organisé du cancer du sein",
-     "le dépistage organisé du cancer colorectal",
-     "la mesure de la pression artérielle"),
-    ("la réadaptation cardiaque après un infarctus",
-     "le suivi d'un diabète déjà installé",
-     "l'éducation thérapeutique d'un patient malade"),
-    ("l'éducation à la santé à l'école",
-     "l'amélioration de l'environnement",
-     "l'encouragement à une alimentation équilibrée"),
+    ("vaccination of infants",
+     "prevention of household accidents",
+     "distribution of condoms"),
+    ("organised breast cancer screening",
+     "organised colorectal cancer screening",
+     "blood pressure measurement"),
+    ("cardiac rehabilitation after a heart attack",
+     "follow-up of established diabetes",
+     "therapeutic education of a patient who is already ill"),
+    ("health education at school",
+     "improvement of the environment",
+     "encouragement of a balanced diet"),
 )
 
 PREVENTION = Pattern(
     key="ie3514_s1_prevention",
-    name="Les niveaux de prévention",
-    brief="Classer quatre actions d'un territoire entre promotion de la "
-          "santé et prévention primaire, secondaire ou tertiaire.",
-    why="Chaque niveau répond à sa propre question.",
-    lesson=lecon(5, "diapositives 5.1 à 5.7 et le tableau des trois "
-                    "niveaux de prévention"),
+    name="Levels of prevention",
+    brief="Classify four actions carried out in a territory as health "
+          "promotion, or as primary, secondary or tertiary prevention.",
+    why="Each level answers its own question.",
+    lesson=lecon(5, "slides 5.1 to 5.7 and the table of the three levels "
+                    "of prevention"),
     dims=(("cas", 0, 2),),
     derive=_choisir(ACTIONS, ("action_a", "action_b", "action_c",
                               "action_d"), True),
-    tpl="""Fiche de révision : les niveaux de prévention
+    tpl="""Revision sheet: levels of prevention
 
-Quatre actions menées sur un même territoire :
+Four actions carried out in the same territory:
   A. @action_a@
   B. @action_b@
   C. @action_c@
   D. @action_d@
 
-L'action A relève de la @a@.
-L'action B relève de la @b@.
-L'action C relève de la @c@.
-L'action D relève de la @d@.""",
+Action A falls under @a@.
+Action B falls under @b@.
+Action C falls under @c@.
+Action D falls under @d@.""",
     blanks={
         "a": ("Action A", _menu(QUESTION_PREVENTION)),
         "b": ("Action B", _menu(QUESTION_PREVENTION)),
@@ -156,7 +155,7 @@ L'action D relève de la @d@.""",
         "d": ("Action D", _menu(QUESTION_PREVENTION)),
     },
     ref={"a": "a", "b": "b", "c": "c", "d": "d"},
-    rows=lambda p, get: ["%s. Question : %s" % (lettre.upper(), get(lettre)(p))
+    rows=lambda p, get: ["%s. Question: %s" % (lettre.upper(), get(lettre)(p))
                          for lettre in "abcd"],
     level=4,
 )
@@ -165,54 +164,52 @@ L'action D relève de la @d@.""",
 # Les niveaux de soins, et les soins de santé primaires, leur faux ami
 # (partie 6). Chacun avec ce qui le caractérise.
 TRAIT_NIVEAU = {
-    "soins primaires": "premier contact, continuité, coordination du "
-                       "parcours",
-    "soins secondaires": "niveau spécialisé, atteint en général après un "
-                         "premier contact",
-    "soins tertiaires": "expertise rare, plateau technique complexe, "
-                        "compétences concentrées",
-    "soins de santé primaires (PHC)": "approche globale de la santé d'une "
-                                      "société, et non niveau de soins",
+    "primary care": "first contact, continuity, coordination of the "
+                    "pathway",
+    "secondary care": "specialised level, generally reached after a "
+                      "first contact",
+    "tertiary care": "rare expertise, complex technical facilities, "
+                     "concentrated skills",
+    "Primary Health Care (PHC)": "a global approach to the health of a "
+                                 "society, not a level of care",
 }
 
 
 
 # Deux parcours : celui du cours, et le même gradient en cardiologie.
 PARCOURS = (
-    ("un patient souffrant de maux de tête voit son médecin généraliste",
-     "une patiente essoufflée voit son médecin traitant"),
-    ("une affection neurologique est suspectée : consultation de "
-     "neurologie et imagerie",
-     "une maladie cardiaque est suspectée : consultation de cardiologie"),
-    ("une tumeur cérébrale complexe est découverte : centre de "
-     "neurochirurgie",
-     "une intervention s'impose : chirurgie cardiaque"),
+    ("a patient suffering from headaches sees their general practitioner",
+     "a breathless patient sees her registered doctor"),
+    ("a neurological condition is suspected: neurology consultation and "
+     "imaging",
+     "a heart disease is suspected: cardiology consultation"),
+    ("a complex brain tumour is discovered: neurosurgery centre",
+     "an operation is required: cardiac surgery"),
 )
 
 NIVEAUX = Pattern(
     key="ie3514_s1_niveaux",
-    name="Le gradient d'orientation",
-    brief="Situer chaque étape d'un parcours de soins sur les niveaux de "
-          "soins.",
-    why="Chaque niveau se reconnaît à ce qu'il apporte au parcours.",
-    lesson=lecon(6, "diapositives 6.1 à 6.3 et « A referral gradient »"),
+    name="The referral gradient",
+    brief="Place each step of a care pathway on the levels of care.",
+    why="Each level is recognised by what it brings to the pathway.",
+    lesson=lecon(6, "slides 6.1 to 6.3 and “A referral gradient”"),
     dims=(("cas", 0, 1),),
     derive=_choisir(PARCOURS, ("etape1", "etape2", "etape3")),
-    tpl="""Fiche de révision : un gradient d'orientation
+    tpl="""Revision sheet: a referral gradient
 
-Étape 1 : @etape1@.
-  Cette étape relève des @n1@.
-Étape 2 : @etape2@.
-  Cette étape relève des @n2@.
-Étape 3 : @etape3@.
-  Cette étape relève des @n3@.""",
+Step 1: @etape1@.
+  This step falls under @n1@.
+Step 2: @etape2@.
+  This step falls under @n2@.
+Step 3: @etape3@.
+  This step falls under @n3@.""",
     blanks={
-        "n1": ("Étape 1", _menu(TRAIT_NIVEAU)),
-        "n2": ("Étape 2", _menu(TRAIT_NIVEAU)),
-        "n3": ("Étape 3", _menu(TRAIT_NIVEAU)),
+        "n1": ("Step 1", _menu(TRAIT_NIVEAU)),
+        "n2": ("Step 2", _menu(TRAIT_NIVEAU)),
+        "n3": ("Step 3", _menu(TRAIT_NIVEAU)),
     },
     ref={"n1": "a", "n2": "b", "n3": "c"},
-    rows=lambda p, get: ["Étape %d : %s" % (i, get("n%d" % i)(p))
+    rows=lambda p, get: ["Step %d: %s" % (i, get("n%d" % i)(p))
                          for i in (1, 2, 3)],
     level=3,
 )
@@ -220,62 +217,61 @@ NIVEAUX = Pattern(
 
 # Les six piliers de l'OMS, chacun avec sa question (partie 7).
 QUESTION_PILIER = {
-    "gouvernance": "« Qui décide ? »",
-    "financement": "« Qui paie, et comment circule l'argent ? »",
-    "ressources humaines": "« A-t-on les bonnes compétences au bon "
-                           "endroit ? »",
-    "prestation de services": "« Où et comment le service est-il "
-                              "délivré ? »",
-    "produits médicaux et technologies": "« Avec quelles ressources "
-                                         "physiques et technologiques ? »",
-    "systèmes d'information": "« Quelle information circule, produite par "
-                              "qui, pour qui ? »",
+    "governance": "“Who decides?”",
+    "financing": "“Who pays, and how does the money flow?”",
+    "human resources": "“Do we have the right skills in the right "
+                       "place?”",
+    "service delivery": "“Where and how is the service delivered?”",
+    "medical products and technologies": "“With which physical and "
+                                         "technological resources?”",
+    "information systems": "“What information flows, produced by whom, "
+                           "for whom?”",
 }
 
 
 PILIERS = Pattern(
     key="ie3514_s1_piliers",
-    name="Un territoire sans généralistes",
-    brief="Rattacher chaque levier d'action à l'un des six piliers de "
-          "l'OMS.",
-    why="Une difficulté qui touche un pilier peut exiger d'en transformer "
-        "plusieurs.",
-    lesson=lecon(8, "« A territory short of general practitioners », avec "
-                    "les six piliers de la partie 7"),
-    tpl="""Fiche de révision : un territoire manque de médecins généralistes
+    name="A territory without general practitioners",
+    brief="Link each lever for action to one of the six WHO building "
+          "blocks.",
+    why="A difficulty affecting one building block may require "
+        "transforming several.",
+    lesson=lecon(8, "“A territory short of general practitioners”, with "
+                    "the six building blocks of part 7"),
+    tpl="""Revision sheet: a territory short of general practitioners
 
-Diagnostic spontané : « C'est uniquement un problème d'effectifs. »
-L'analyse par les six piliers de l'OMS fait apparaître d'autres leviers :
+Spontaneous diagnosis: “It is only a staffing problem.”
+Analysis through the six WHO building blocks reveals other levers:
 
-  1. Les modes de rémunération pèsent sur le lieu où les
-     professionnels choisissent de s'installer.
-     Pilier : @l1@
-  2. Les autorités peuvent créer des incitations.
-     Pilier : @l2@
-  3. La téléconsultation peut apporter une partie de la réponse.
-     Pilier : @l3@
-  4. Les données permettent de repérer les zones où les besoins
-     sont les plus forts.
-     Pilier : @l4@""",
+  1. Payment methods influence where professionals
+     choose to set up their practice.
+     Building block: @l1@
+  2. The authorities can create incentives.
+     Building block: @l2@
+  3. Teleconsultation can provide part of the answer.
+     Building block: @l3@
+  4. Data make it possible to identify the areas where
+     needs are greatest.
+     Building block: @l4@""",
     # Chaque menu écarte les piliers que le cours rattache aussi au levier :
     # la télémédecine apparaît sous la prestation de services, et la
     # réorganisation de l'offre sous la gouvernance.
     blanks={
-        "l1": ("Levier 1", _menu(QUESTION_PILIER, (
-            "financement", "gouvernance", "ressources humaines",
-            "prestation de services"))),
-        "l2": ("Levier 2", _menu(QUESTION_PILIER, (
-            "gouvernance", "financement", "ressources humaines",
-            "systèmes d'information"))),
-        "l3": ("Levier 3", _menu(QUESTION_PILIER, (
-            "produits médicaux et technologies", "systèmes d'information",
-            "ressources humaines", "gouvernance"))),
-        "l4": ("Levier 4", _menu(QUESTION_PILIER, (
-            "systèmes d'information", "gouvernance",
-            "produits médicaux et technologies", "financement"))),
+        "l1": ("Lever 1", _menu(QUESTION_PILIER, (
+            "financing", "governance", "human resources",
+            "service delivery"))),
+        "l2": ("Lever 2", _menu(QUESTION_PILIER, (
+            "governance", "financing", "human resources",
+            "information systems"))),
+        "l3": ("Lever 3", _menu(QUESTION_PILIER, (
+            "medical products and technologies", "information systems",
+            "human resources", "governance"))),
+        "l4": ("Lever 4", _menu(QUESTION_PILIER, (
+            "information systems", "governance",
+            "medical products and technologies", "financing"))),
     },
     ref={"l1": "a", "l2": "a", "l3": "a", "l4": "a"},
-    rows=lambda p, get: ["Levier %d : %s" % (i, get("l%d" % i)(p))
+    rows=lambda p, get: ["Lever %d: %s" % (i, get("l%d" % i)(p))
                          for i in (1, 2, 3, 4)],
     level=4,
 )
@@ -283,81 +279,80 @@ L'analyse par les six piliers de l'OMS fait apparaître d'autres leviers :
 
 # Les sept dimensions d'évaluation, avec leur définition (partie 10).
 DEFINITION_DIMENSION = {
-    "résultats de santé": "les effets produits sur la santé : espérance "
-                          "de vie, mortalité évitable",
-    "accès": "la capacité effective d'obtenir les services : coût, "
-             "distance, délais, disponibilité",
-    "qualité et sécurité": "des soins efficaces, conformes aux preuves, "
-                           "sans événement indésirable évitable",
-    "équité": "à besoin égal, accès égal, sans écart lié au revenu ou au "
-              "statut social",
-    "efficience": "le meilleur résultat possible avec les ressources "
-                  "utilisées",
-    "soutenabilité": "la capacité à financer et faire fonctionner le "
-                     "système dans la durée",
-    "résilience": "la capacité à continuer de fonctionner et à se "
-                  "réorganiser face à un choc",
+    "health outcomes": "the effects produced on health: life expectancy, "
+                       "avoidable mortality",
+    "access": "the actual ability to obtain services: cost, distance, "
+              "waiting times, availability",
+    "quality and safety": "effective, evidence-based care, without "
+                          "avoidable adverse events",
+    "equity": "equal access for equal need, with no gap linked to income "
+              "or social status",
+    "efficiency": "the best possible result with the resources used",
+    "sustainability": "the ability to finance and run the system over "
+                      "time",
+    "resilience": "the ability to keep functioning and to reorganise in "
+                  "the face of a shock",
 }
 
 
 SITUATIONS = (
-    ("à besoin égal, les ménages modestes obtiennent moins de soins que "
-     "les autres",
-     "à besoin égal, les habitants peu diplômés sont moins bien soignés"),
-    ("les hôpitaux continuent de soigner pendant une cyberattaque",
-     "les soins se poursuivent malgré une canicule et une rupture "
-     "d'approvisionnement en médicaments"),
-    ("le système fonctionne bien aujourd'hui, mais le vieillissement de "
-     "la population menace son financement dans dix ans",
-     "la hausse des maladies chroniques et le coût de l'innovation font "
-     "douter qu'on puisse financer longtemps le système"),
-    ("on dépense davantage en prévention pour économiser des "
-     "hospitalisations, à résultats meilleurs",
-     "on cherche le meilleur résultat possible avec les moyens "
-     "disponibles, sans viser la seule baisse des coûts"),
-    ("des soins conformes aux recommandations provoquent pourtant un "
-     "événement indésirable évitable",
-     "une infection contractée à l'hôpital aurait pu être évitée"),
+    ("for equal need, low-income households receive less care than "
+     "others",
+     "for equal need, residents with few qualifications receive poorer "
+     "care"),
+    ("hospitals keep treating patients during a cyberattack",
+     "care continues despite a heatwave and a shortage in the supply of "
+     "medicines"),
+    ("the system works well today, but population ageing threatens its "
+     "financing in ten years' time",
+     "the rise in chronic diseases and the cost of innovation cast doubt "
+     "on whether the system can be financed for long"),
+    ("more is spent on prevention to save on hospital admissions, with "
+     "better results",
+     "the aim is the best possible result with the available means, not "
+     "merely lower costs"),
+    ("care that follows the guidelines nevertheless causes an avoidable "
+     "adverse event",
+     "an infection contracted in hospital could have been avoided"),
 )
 
 DIMENSIONS = Pattern(
     key="ie3514_s1_dimensions",
-    name="Évaluer un système de santé",
-    brief="Rattacher chaque situation à la dimension d'évaluation qu'elle "
-          "met en jeu.",
-    why="Évaluer un système, c'est arbitrer entre des dimensions souvent "
-        "en tension.",
-    lesson=lecon(10, "« Seven dimensions for evaluating a health system » "
-                     "et leur détail, 10.1 à 10.7"),
+    name="Evaluating a health system",
+    brief="Link each situation to the evaluation dimension it involves.",
+    why="Evaluating a system means arbitrating between dimensions that are "
+        "often in tension.",
+    lesson=lecon(10, "“Seven dimensions for evaluating a health system” "
+                     "and their details, 10.1 to 10.7"),
     dims=(("cas", 0, 1),),
     derive=_choisir(SITUATIONS, ("s1", "s2", "s3", "s4", "s5"), True),
-    tpl="""Fiche de révision : les dimensions d'évaluation
+    tpl="""Revision sheet: the evaluation dimensions
 
   1. @s1@.
-     Dimension : @d1@
+     Dimension: @d1@
   2. @s2@.
-     Dimension : @d2@
+     Dimension: @d2@
   3. @s3@.
-     Dimension : @d3@
+     Dimension: @d3@
   4. @s4@.
-     Dimension : @d4@
+     Dimension: @d4@
   5. @s5@.
-     Dimension : @d5@""",
+     Dimension: @d5@""",
     # La situation d'équité ne propose pas l'accès : renoncer aux soins
     # faute de moyens est aussi un défaut d'accès financier.
     blanks={
         "d1": ("Situation 1", _menu(DEFINITION_DIMENSION, (
-            "équité", "efficience", "qualité et sécurité",
-            "résultats de santé"))),
+            "equity", "efficiency", "quality and safety",
+            "health outcomes"))),
         "d2": ("Situation 2", _menu(DEFINITION_DIMENSION, (
-            "résilience", "soutenabilité", "efficience", "accès"))),
+            "resilience", "sustainability", "efficiency", "access"))),
         "d3": ("Situation 3", _menu(DEFINITION_DIMENSION, (
-            "soutenabilité", "résilience", "efficience", "équité"))),
+            "sustainability", "resilience", "efficiency", "equity"))),
         "d4": ("Situation 4", _menu(DEFINITION_DIMENSION, (
-            "efficience", "soutenabilité", "accès", "qualité et sécurité"))),
+            "efficiency", "sustainability", "access", "quality and safety"))),
         "d5": ("Situation 5", _menu(DEFINITION_DIMENSION, (
-            "qualité et sécurité", "résultats de santé", "accès",
-            "équité"))),
+            "quality and safety", "health outcomes", "access",
+            "equity"))),
     },
     ref={"d1": "a", "d2": "a", "d3": "a", "d4": "a", "d5": "a"},
     rows=lambda p, get: ["%d. %s" % (i, get("d%d" % i)(p))
@@ -368,54 +363,54 @@ DIMENSIONS = Pattern(
 
 # Les étapes du continuum, chacune avec son but (partie 5).
 BUT_ETAPE = {
-    "PRÉVENIR": "éviter l'apparition",
-    "DIAGNOSTIQUER": "identifier la cause",
-    "RÉADAPTER": "restaurer les capacités",
+    "PREVENT": "avoid onset",
+    "DIAGNOSE": "identify the cause",
+    "REHABILITATE": "restore abilities",
 }
 
 # Les deux bouts du continuum : l'effet, et ce qui l'accompagne.
 BOUT = {
-    "collectif, diffus et différé":
-        "écoles, collectivités, employeurs ; financement : budgets de "
-        "prévention, souvent modestes",
-    "individuel, mesurable et immédiat":
-        "professionnels et établissements de santé ; financement : "
-        "assurance maladie, paiement à l'activité",
+    "collective, diffuse and delayed":
+        "schools, local authorities, employers; financing: prevention "
+        "budgets, often modest",
+    "individual, measurable and immediate":
+        "health professionals and facilities; financing: health "
+        "insurance, activity-based payment",
 }
 
 
 
 CONTINUUM = Pattern(
     key="ie3514_s1_continuum",
-    name="Le continuum de santé",
-    brief="Compléter les étapes du continuum de santé, puis l'effet de "
-          "l'action à chacun de ses bouts.",
-    why="Le système accompagne une personne toute sa vie, pas seulement "
-        "pendant un épisode aigu.",
-    lesson=lecon(5, "« The health continuum »"),
-    tpl="""Fiche de révision : le continuum de santé
+    name="The health continuum",
+    brief="Complete the steps of the health continuum, then the effect of "
+          "action at each of its ends.",
+    why="The system accompanies a person throughout their life, not only "
+        "during an acute episode.",
+    lesson=lecon(5, "“The health continuum”"),
+    tpl="""Revision sheet: the health continuum
 
-PROMOUVOIR → @e2@ → DÉPISTER → @e4@ → TRAITER → @e6@ → ACCOMPAGNER
+PROMOTE → @e2@ → SCREEN → @e4@ → TREAT → @e6@ → SUPPORT
 
-Population générale → personne à risque → patient
-                    → personne handicapée ou en fin de vie
+General population → person at risk → patient
+                   → person with a disability or at the end of life
 
-À gauche du continuum, l'effet de l'action est @gauche@.
-À droite du continuum, l'effet de l'action est @droite@.""",
+At the left end of the continuum, the effect of action is @gauche@.
+At the right end of the continuum, the effect of action is @droite@.""",
     blanks={
-        "e2": ("2e étape", _menu(BUT_ETAPE)),
-        "e4": ("4e étape", _menu(BUT_ETAPE)),
-        "e6": ("6e étape", _menu(BUT_ETAPE)),
-        "gauche": ("Effet à gauche", _menu(BOUT)),
-        "droite": ("Effet à droite", _menu(BOUT)),
+        "e2": ("Step 2", _menu(BUT_ETAPE)),
+        "e4": ("Step 4", _menu(BUT_ETAPE)),
+        "e6": ("Step 6", _menu(BUT_ETAPE)),
+        "gauche": ("Effect at the left end", _menu(BOUT)),
+        "droite": ("Effect at the right end", _menu(BOUT)),
     },
     ref={"e2": "a", "e4": "b", "e6": "c", "gauche": "a", "droite": "b"},
     rows=lambda p, get: [
-        "2e étape : %s" % get("e2")(p),
-        "4e étape : %s" % get("e4")(p),
-        "6e étape : %s" % get("e6")(p),
-        "À gauche, acteurs : %s" % get("gauche")(p),
-        "À droite, acteurs : %s" % get("droite")(p),
+        "Step 2: %s" % get("e2")(p),
+        "Step 4: %s" % get("e4")(p),
+        "Step 6: %s" % get("e6")(p),
+        "Left end, actors: %s" % get("gauche")(p),
+        "Right end, actors: %s" % get("droite")(p),
     ],
     level=3,
 )
@@ -424,47 +419,45 @@ Population générale → personne à risque → patient
 # Maladie, vécu de la maladie, santé au sens large (partie 1.2), avec ce
 # que chacune représente pour le système.
 ROLE_NOTION = {
-    "la maladie (disease)": "ce que voient réellement les systèmes "
-                            "d'information",
-    "le vécu de la maladie (illness)": "ce qui déclenche le recours aux "
-                                       "soins",
-    "la santé au sens large (health)": "ce que le nombre d'actes ne "
-                                       "suffit pas à mesurer",
+    "disease": "what information systems actually see",
+    "illness": "what triggers the use of care",
+    "health in the broad sense": "what the number of procedures alone "
+                                 "cannot measure",
 }
 
 OBSERVATIONS = (
-    ("un code de diagnostic « diabète de type 2 » est saisi dans le "
-     "dossier du patient",
-     "une hypertension est identifiée selon des critères médicaux, puis "
-     "codée"),
-    ("une personne se sent malade et prend rendez-vous, alors qu'aucun "
-     "examen ne révèle de pathologie",
-     "un patient décrit sa fatigue et son inquiétude : c'est ce ressenti "
-     "qui l'amène à consulter"),
-    ("on considère l'autonomie d'une personne, ses relations sociales et "
-     "la qualité de vie qu'elle perçoit",
-     "on considère l'état psychique d'une personne, son environnement et "
-     "sa qualité de vie perçue"),
+    ("a diagnosis code “type 2 diabetes” is entered in the patient's "
+     "record",
+     "hypertension is identified according to medical criteria, then "
+     "coded"),
+    ("a person feels ill and makes an appointment, although no "
+     "examination reveals any pathology",
+     "a patient describes their fatigue and anxiety: it is this feeling "
+     "that leads them to see a doctor"),
+    ("a person's autonomy, social relationships and perceived quality of "
+     "life are taken into account",
+     "a person's mental state, environment and perceived quality of life "
+     "are taken into account"),
 )
 
 NOTIONS = Pattern(
     key="ie3514_s1_notions",
-    name="Trois notions à ne pas confondre",
-    brief="Reconnaître, dans chaque observation, la notion en jeu : "
-          "maladie, vécu de la maladie, ou santé au sens large.",
-    why="La performance d'un système ne se mesure pas au seul nombre "
-        "d'actes.",
-    lesson=lecon(1, "diapositive 1.2 « Three notions not to be confused »"),
+    name="Three notions not to be confused",
+    brief="Recognise the notion at stake in each observation: disease, "
+          "illness, or health in the broad sense.",
+    why="The performance of a system is not measured by the number of "
+        "procedures alone.",
+    lesson=lecon(1, "slide 1.2 “Three notions not to be confused”"),
     dims=(("cas", 0, 1),),
     derive=_choisir(OBSERVATIONS, ("o1", "o2", "o3"), True),
-    tpl="""Fiche de révision : maladie, vécu de la maladie, santé
+    tpl="""Revision sheet: disease, illness, health
 
   1. @o1@.
-     Notion : @n1@
+     Notion: @n1@
   2. @o2@.
-     Notion : @n2@
+     Notion: @n2@
   3. @o3@.
-     Notion : @n3@""",
+     Notion: @n3@""",
     blanks={
         "n1": ("Observation 1", _menu(ROLE_NOTION)),
         "n2": ("Observation 2", _menu(ROLE_NOTION)),
@@ -485,227 +478,223 @@ NOTIONS = Pattern(
 # partie du cours). Comme dans qcm_docker, la bonne réponse est écrite en
 # premier puis déplacée par `_tourner`.
 QUESTIONS = (
-    ("Une personne n'a aucune maladie diagnostiquée, mais vit dans un "
-     "logement insalubre, souffre d'isolement social, dort très mal et "
-     "présente une détresse psychologique importante. Selon la définition "
-     "de l'OMS, que conclure ?",
-     ("Elle n'est pas en bonne santé : la santé n'est pas la seule absence "
-      "de maladie",
-      "Elle est en bonne santé, puisqu'aucune maladie n'a été diagnostiquée",
-      "On ne peut rien conclure tant qu'un médecin n'a pas posé de "
-      "diagnostic",
-      "Elle est en bonne santé physique, seule dimension que retient "
-      "l'OMS"),
+    ("A person has no diagnosed disease, but lives in unsanitary housing, "
+     "suffers from social isolation, sleeps very badly and shows "
+     "significant psychological distress. According to the WHO "
+     "definition, what can be concluded?",
+     ("This person is not in good health: health is not merely the "
+      "absence of disease",
+      "This person is in good health, since no disease has been diagnosed",
+      "Nothing can be concluded until a doctor has made a diagnosis",
+      "This person is in good physical health, the only dimension the WHO "
+      "considers"),
      0, 3,
-     "L'OMS définit la santé comme un état de bien-être physique, mental "
-     "et social, et pas seulement comme l'absence de maladie ou "
-     "d'infirmité (Constitution adoptée en 1946, en vigueur depuis 1948). "
-     "Un diagnostic ne suffit ni à déclarer une personne en bonne santé, "
-     "ni à la déclarer malade.",
+     "The WHO defines health as a state of physical, mental and social "
+     "well-being, and not merely the absence of disease or infirmity "
+     "(Constitution adopted in 1946, in force since 1948). A diagnosis is "
+     "not enough either to declare a person healthy or to declare them "
+     "ill.",
      1),
 
-    ("Grâce à la prévention, un système évite des hospitalisations et "
-     "réalise donc moins d'actes. Que dit le cours ?",
-     ("Il peut obtenir de meilleurs résultats : la performance ne se "
-      "mesure pas au nombre d'actes",
-      "Sa performance baisse, puisque son activité diminue",
-      "Il devient moins efficient, puisque ses équipements servent moins",
-      "Il ne peut être jugé que sur ses indicateurs d'activité, seuls "
-      "disponibles"),
+    ("Thanks to prevention, a system avoids hospital admissions and "
+     "therefore performs fewer procedures. What does the course say?",
+     ("It can achieve better results: performance is not measured by the "
+      "number of procedures",
+      "Its performance falls, since its activity decreases",
+      "It becomes less efficient, since its equipment is used less",
+      "It can only be judged on its activity indicators, the only ones "
+      "available"),
      0, 3,
-     "Mesurer l'activité (consultations, admissions, actes, journées) suit "
-     "une logique de volume : facile à compter, mais muet sur la santé "
-     "obtenue. Mesurer les résultats (espérance de vie en bonne santé, "
-     "mortalité évitable, complications évitées) suit une logique de "
-     "valeur. Plus d'actes ne fait pas un meilleur système.",
+     "Measuring activity (consultations, admissions, procedures, bed "
+     "days) follows a volume logic: easy to count, but silent on the "
+     "health achieved. Measuring outcomes (healthy life expectancy, "
+     "avoidable mortality, complications avoided) follows a value logic. "
+     "More procedures do not make a better system.",
      1),
 
-    ("Lequel de ces éléments fait partie du système de santé (health "
-     "system), mais **pas** du système de soins (healthcare system) ?",
-     ("La formation des professionnels de santé",
-      "Les services de réadaptation",
-      "Les laboratoires et l'imagerie",
-      "La prévention délivrée par un médecin"),
+    ("Which of these elements belongs to the health system, but **not** "
+     "to the healthcare system?",
+     ("The training of health professionals",
+      "Rehabilitation services",
+      "Laboratories and imaging",
+      "Prevention delivered by a doctor"),
      0, 4,
-     "Le système de soins réunit professionnels, établissements et "
-     "fonctions de soins — dont la prévention délivrée médicalement et la "
-     "réadaptation. Il ne comprend ni le financement, ni la régulation, ni "
-     "la santé publique, ni la formation des professionnels, qui "
-     "appartiennent au système de santé.",
+     "The healthcare system brings together professionals, facilities "
+     "and care functions — including medically delivered prevention and "
+     "rehabilitation. It does not include financing, regulation, public "
+     "health or the training of professionals, which belong to the "
+     "health system.",
      2),
 
-    ("Quelle relation lie le système de soins (healthcare system) et le "
-     "système de santé (health system) ?",
-     ("Une inclusion : le système de soins est l'une des composantes du "
-      "système de santé",
-      "Une équivalence : les deux expressions désignent le même ensemble",
-      "Une inclusion : le système de santé est l'une des composantes du "
-      "système de soins",
-      "Aucune : ce sont deux ensembles séparés, les soins d'un côté, la "
-      "santé publique de l'autre"),
+    ("What is the relationship between the healthcare system and the "
+     "health system?",
+     ("Inclusion: the healthcare system is one of the components of the "
+      "health system",
+      "Equivalence: the two expressions refer to the same whole",
+      "Inclusion: the health system is one of the components of the "
+      "healthcare system",
+      "None: they are two separate wholes, care on one side, public "
+      "health on the other"),
      0, 3,
-     "C'est une relation d'inclusion, pas d'équivalence. Au cœur, le "
-     "système de soins ; autour, la prévention et la santé publique ; puis "
-     "le financement, la régulation, la formation et l'information.",
+     "It is a relationship of inclusion, not equivalence. At the core, "
+     "the healthcare system; around it, prevention and public health; "
+     "then financing, regulation, training and information.",
      2),
 
-    ("Le cours distingue santé individuelle, santé des populations et "
-     "santé publique. Laquelle de ces définitions est celle de la "
-     "**santé publique** ?",
-     ("L'action organisée de la société pour améliorer l'état de santé : "
-      "surveillance, prévention, protection, promotion, régulation",
-      "L'état de santé d'un groupe, mesuré par des indicateurs agrégés, et "
-      "sa répartition entre sous-groupes",
-      "L'état de santé d'une personne et les soins qu'elle reçoit",
-      "L'ensemble des soins délivrés par les hôpitaux publics"),
+    ("The course distinguishes individual health, population health and "
+     "public health. Which of these definitions is that of **public "
+     "health**?",
+     ("The organised action of society to improve health status: "
+      "surveillance, prevention, protection, promotion, regulation",
+      "The health status of a group, measured by aggregate indicators, "
+      "and its distribution across subgroups",
+      "The health status of a person and the care they receive",
+      "All the care delivered by public hospitals"),
      0, 4,
-     "La santé des populations est un état : celui d'un groupe, "
-     "mesuré par des indicateurs agrégés. La santé publique est une "
-     "action : celle que la société organise pour améliorer cet "
-     "état.",
+     "Population health is a state: that of a group, measured by "
+     "aggregate indicators. Public health is an action: the one society "
+     "organises to improve that state.",
      3),
 
-    ("Un enfant asthmatique a un traitement optimisé et un suivi "
-     "respiratoire régulier, mais ses crises persistent. Laquelle de ces "
-     "actions agit sur un déterminant de son état **hors** du champ du "
-     "médecin de famille ?",
-     ("Traiter l'humidité et les moisissures du logement",
-      "Renforcer l'éducation thérapeutique du patient",
-      "Ajuster le traitement médicamenteux",
-      "Rapprocher les consultations de suivi respiratoire"),
+    ("A child with asthma has optimised treatment and regular respiratory "
+     "follow-up, but the attacks persist. Which of these actions works on "
+     "a determinant of the child's condition **outside** the family "
+     "doctor's remit?",
+     ("Treating the damp and mould in the home",
+      "Strengthening the patient's therapeutic education",
+      "Adjusting the drug treatment",
+      "Scheduling respiratory follow-up visits more often"),
      0, 4,
-     "Le système de soins optimise le traitement, mais l'exposition "
-     "demeure : pollution de l'air, humidité et moisissures, tabagisme "
-     "dans le foyer, conditions sociales de la famille. Aucun de ces "
-     "leviers n'appartient au médecin de famille : il faut coopérer avec "
-     "les politiques du logement, de l'environnement, de l'éducation et "
-     "avec les collectivités.",
+     "The healthcare system optimises treatment, but the exposure "
+     "remains: air pollution, damp and mould, smoking in the household, "
+     "the family's social conditions. None of these levers belongs to the "
+     "family doctor: cooperation is needed with housing, environment and "
+     "education policies, and with local authorities.",
      4),
 
-    ("Selon le cours, comment les comportements individuels "
-     "(alimentation, activité physique, conduites à risque) se rattachent-"
-     "ils aux autres familles de déterminants ?",
-     ("Ils sont largement façonnés par l'environnement social et "
-      "économique et par l'environnement physique",
-      "Ils en sont indépendants : ils relèvent du seul choix de chacun",
-      "Ils comptent moins que le recours au système de soins, déterminant "
-      "principal de la santé",
-      "Ils n'interviennent qu'après une intervention médicale"),
+    ("According to the course, how do individual behaviours (diet, "
+     "physical activity, risk behaviours) relate to the other families of "
+     "determinants?",
+     ("They are largely shaped by the social and economic environment and "
+      "by the physical environment",
+      "They are independent of them: they are purely a matter of "
+      "individual choice",
+      "They matter less than the use of the healthcare system, the main "
+      "determinant of health",
+      "They only come into play after a medical intervention"),
      0, 4,
-     "Trois familles de déterminants : l'environnement social et "
-     "économique, l'environnement physique, les caractéristiques et "
-     "comportements individuels. Les comportements sont eux-mêmes "
-     "largement façonnés par les deux premières familles, et tous agissent "
-     "avant toute intervention médicale.",
+     "Three families of determinants: the social and economic "
+     "environment, the physical environment, individual characteristics "
+     "and behaviours. Behaviours are themselves largely shaped by the "
+     "first two families, and all of them act before any medical "
+     "intervention.",
      4),
 
-    ("Laquelle de ces affirmations n'est **pas** une condition d'un "
-     "dépistage pertinent, selon le cours ?",
-     ("La maladie doit être rare, pour limiter le nombre de personnes à "
-      "tester",
-      "Le test doit être fiable, acceptable et peu invasif",
-      "Un traitement doit exister, plus efficace à un stade précoce",
-      "Une filière de soins doit être organisée en aval"),
+    ("According to the course, which of these statements is **not** a "
+     "condition for relevant screening?",
+     ("The disease must be rare, to limit the number of people to test",
+      "The test must be reliable, acceptable and minimally invasive",
+      "A treatment must exist that is more effective at an early stage",
+      "A care pathway must be organised downstream"),
      0, 4,
-     "Le dépistage (prévention secondaire) suppose au contraire une "
-     "maladie assez fréquente et assez grave. Mal conçu, il produit des "
-     "faux positifs, des examens inutiles et du surdiagnostic.",
+     "Screening (secondary prevention) on the contrary requires a disease "
+     "that is frequent enough and serious enough. Poorly designed, it "
+     "produces false positives, unnecessary examinations and "
+     "overdiagnosis.",
      5),
 
-    ("Que souligne l'OMS à propos des soins primaires (primary care) et "
-     "des soins de santé primaires (Primary Health Care, PHC) ?",
-     ("Un pays peut avoir de bons soins primaires sans avoir mis en œuvre "
-      "de politique de soins de santé primaires",
-      "Les deux expressions désignent le même premier niveau de soins",
-      "Les soins de santé primaires sont un niveau de soins plus "
-      "spécialisé que les soins primaires",
-      "Un pays qui a mis en œuvre les soins de santé primaires n'a plus "
-      "besoin de soins primaires"),
+    ("What does the WHO emphasise about primary care and Primary Health "
+     "Care (PHC)?",
+     ("A country can have good primary care without having implemented "
+      "a Primary Health Care policy",
+      "The two expressions refer to the same first level of care",
+      "Primary Health Care is a more specialised level of care than "
+      "primary care",
+      "A country that has implemented Primary Health Care no longer needs "
+      "primary care"),
      0, 4,
-     "Les soins primaires sont un niveau de soins : premier contact, "
-     "continuité, coordination des soins individuels. Les soins de santé "
-     "primaires sont une approche globale, bien plus large : soins "
-     "primaires, fonctions essentielles de santé publique, action sur les "
-     "déterminants et participation communautaire.",
+     "Primary care is a level of care: first contact, continuity, "
+     "coordination of individual care. Primary Health Care is a global "
+     "approach, much broader: primary care, essential public health "
+     "functions, action on determinants and community participation.",
      6),
 
-    ("Selon le cours, protéger la population contre le risque financier "
-     "de la maladie est…",
-     ("un objectif du système, porté par le pilier financement",
-      "un effet secondaire du financement, sans en être un objectif",
-      "une mission du seul pilier gouvernance",
-      "hors du champ du système de santé, l'affaire des assurances "
-      "privées"),
+    ("According to the course, protecting the population against the "
+     "financial risk of illness is…",
+     ("an objective of the system, carried by the financing building "
+      "block",
+      "a side effect of financing, without being one of its objectives",
+      "a task for the governance building block alone",
+      "outside the scope of the health system, a matter for private "
+      "insurers"),
      0, 4,
-     "Le pilier financement collecte les ressources, les mutualise, les "
-     "répartit entre les acteurs et protège la population contre le "
-     "risque financier de la maladie. Le cours insiste : c'est un "
-     "objectif du système, pas un effet secondaire.",
+     "The financing building block collects resources, pools them, "
+     "allocates them among actors and protects the population against "
+     "the financial risk of illness. The course insists: this is an "
+     "objective of the system, not a side effect.",
      7),
 
-    ("« Le nombre de médecins formés aujourd'hui produit ses effets dans "
-     "dix à vingt ans. » Quelle propriété de l'approche systémique cet "
-     "exemple illustre-t-il ?",
-     ("Les effets sont différés",
-      "Les effets se propagent d'un pilier aux autres",
-      "Les effets non voulus existent toujours",
-      "Les piliers fonctionnent indépendamment les uns des autres"),
+    ("“The number of doctors trained today produces its effects in ten to "
+     "twenty years.” Which property of the systems approach does this "
+     "example illustrate?",
+     ("Effects are delayed",
+      "Effects spread from one building block to the others",
+      "Unintended effects always exist",
+      "The building blocks work independently of one another"),
      0, 4,
-     "Trois propriétés : les effets se propagent (augmenter le prix d'un "
-     "acte modifie l'offre, donc les délais, donc le recours aux "
-     "urgences), les effets sont différés (des années, parfois des "
-     "décennies), et les effets non voulus existent toujours (un "
-     "indicateur de volume mal calibré encourage une activité inutile).",
+     "Three properties: effects spread (raising the price of a procedure "
+     "changes supply, hence waiting times, hence the use of emergency "
+     "departments), effects are delayed (by years, sometimes decades), "
+     "and unintended effects always exist (a poorly calibrated volume "
+     "indicator encourages unnecessary activity).",
      8),
 
-    ("Le pays A dépense beaucoup plus pour la santé que le pays B. Que "
-     "conclut le cours ?",
-     ("Rien sur sa performance : la dépense est un intrant, jamais un "
-      "indicateur de performance",
-      "Le pays A a le meilleur système, puisqu'il y consacre plus de "
-      "moyens",
-      "Le pays B est le plus efficient, puisqu'il dépense moins",
-      "Le pays A offre forcément un meilleur accès aux soins"),
+    ("Country A spends much more on health than country B. What does the "
+     "course conclude?",
+     ("Nothing about its performance: spending is an input, never a "
+      "performance indicator",
+      "Country A has the better system, since it devotes more resources "
+      "to it",
+      "Country B is more efficient, since it spends less",
+      "Country A necessarily offers better access to care"),
      0, 3,
-     "La dépense mesure ce qu'on consacre au système, jamais ce qu'il "
-     "produit : c'est un dénominateur. Deux pays peuvent dépenser autant "
-     "pour des choses très différentes, et une offre abondante mais mal "
-     "répartie ne profite pas à toute la population.",
+     "Spending measures what is devoted to the system, never what it "
+     "produces: it is a denominator. Two countries can spend the same "
+     "amount on very different things, and an abundant but poorly "
+     "distributed supply does not benefit the whole population.",
      10),
 
-    ("Des stocks, des marges et des redondances : entre quelles "
-     "dimensions de l'évaluation créent-ils une tension ?",
-     ("L'efficience et la résilience : inutiles en temps normal, "
-      "indispensables en crise",
-      "L'équité et l'accès : ils profitent aux uns au détriment des "
-      "autres",
-      "La qualité et la sécurité : plus de stocks, moins de soins sûrs",
-      "La soutenabilité et les résultats de santé : ils financent l'avenir "
-      "aux dépens du présent"),
+    ("Stocks, margins and redundancies: between which evaluation "
+     "dimensions do they create a tension?",
+     ("Efficiency and resilience: useless in normal times, essential in "
+      "a crisis",
+      "Equity and access: they benefit some at the expense of others",
+      "Quality and safety: more stocks, less safe care",
+      "Sustainability and health outcomes: they finance the future at the "
+      "expense of the present"),
      0, 4,
-     "C'est la tension à retenir : marges, stocks et redondances sont "
-     "inefficients en temps normal et indispensables dans une crise "
-     "(pandémie, canicule, rupture d'approvisionnement, cyberattaque). "
-     "Évaluer un système, c'est arbitrer entre les dimensions, pas les "
-     "maximiser toutes à la fois.",
+     "This is the tension to remember: margins, stocks and redundancies "
+     "are inefficient in normal times and essential in a crisis "
+     "(pandemic, heatwave, supply shortage, cyberattack). Evaluating a "
+     "system means arbitrating between dimensions, not maximising them "
+     "all at once.",
      10),
 
-    ("Pourquoi le cours qualifie-t-il le système français de système "
-     "**hybride** ?",
-     ("Né de l'assurance sociale, il a aussi les traits d'un système "
-      "national fortement piloté par l'État",
-      "Il mêle médecine conventionnelle et médecines alternatives",
-      "Il est financé à parts égales par l'État et par les patients",
-      "Il est entièrement privé en ville et entièrement public à "
-      "l'hôpital"),
+    ("Why does the course describe the French system as a **hybrid** "
+     "system?",
+     ("Born of social insurance, it also has the features of a national "
+      "system strongly steered by the State",
+      "It combines conventional medicine and alternative medicine",
+      "It is financed in equal shares by the State and by patients",
+      "It is entirely private in community care and entirely public in "
+      "hospitals"),
      0, 3,
-     "Historiquement bâti sur les cotisations, les caisses et les groupes "
-     "professionnels, il présente aussi les traits d'un système national "
-     "piloté par l'État. L'Observatoire européen des systèmes et des "
-     "politiques de santé relève une couverture universelle, un rôle "
-     "majeur de l'assurance maladie obligatoire, une large part de "
-     "recettes fiscales, une forte intervention de l'État et un mélange "
-     "d'offreurs publics et privés.",
+     "Historically built on contributions, insurance funds and "
+     "occupational groups, it also has the features of a national system "
+     "steered by the State. The European Observatory on Health Systems and "
+     "Policies notes universal coverage, a major role for mandatory health "
+     "insurance, a large share of tax revenue, strong State intervention "
+     "and a mix of public and private providers.",
      11),
 )
 
@@ -714,11 +703,18 @@ def _build(rang, question, choices, answer, level, explanation, partie):
     choices, answer = _tourner(choices, answer, rang)
     pattern = qcm_pattern(
         "ie3514_s1_q%02d" % rang, rang, question, choices, answer, level,
-        "%s Pour aller plus loin, revoyez la %s." % (explanation,
-                                                     revoir(partie)))
-    return replace(pattern, lesson=(
+        explanation)
+    # `qcm_pattern` préfixe la bonne réponse d'un « Exact. » : on le
+    # réécrit en anglais, avec le renvoi au cours. Les propositions
+    # fausses restent sans commentaire, comme dans `qcm_pattern`.
+    juste = "Correct. %s To go further, review %s." % (explanation,
+                                                       revoir(partie))
+    label, options = pattern.blanks["choix"]
+    options = [replace(o, note=juste) if o.id == pattern.ref["choix"]
+               else o for o in options]
+    return replace(pattern, blanks={"choix": (label, options)}, lesson=(
         INTITULE,
-        "En cas d'erreur, revoyez la %s." % revoir(partie),
+        "If you get it wrong, review %s." % revoir(partie),
     ))
 
 

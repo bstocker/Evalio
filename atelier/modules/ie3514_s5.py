@@ -30,9 +30,9 @@ TITLE = "IE3514 - Revision Sheet for Session 5"
 # L'en-tête demandé par l'enseignant, affiché en tête de chaque exercice.
 INTRO = ("The following exercises are designed to help you make the most of "
          "your revision sessions. You answer the questions, and if you get a "
-         "wrong answer, you will be shown the correct answer and directed to "
-         "the relevant chapter to review if you wish to improve your "
-         "understanding of the course material.")
+         "wrong answer, you will be directed to the relevant part of the "
+         "course to review, so that you can improve your understanding of "
+         "the course material.")
 
 OK, KO = "✓", "✗"
 

@@ -29,9 +29,9 @@ from .qcm_docker import _tourner
 INTITULE = (
     "The following exercises are designed to help you make the most of "
     "your revision sessions. You answer the questions, and if you get a "
-    "wrong answer, you will be shown the correct answer and directed to "
-    "the relevant chapter to review if you wish to improve your "
-    "understanding of the course material."
+    "wrong answer, you will be directed to the relevant part of the "
+    "course to review, so that you can improve your understanding of the "
+    "course material."
 )
 
 # Les parties du cours, par leur titre : un titre de section en dirait
@@ -487,10 +487,10 @@ MODULE = Module(
     key="ie3514_s4",
     title="IE3514 - Revision Sheet for Session 4",
     level=4,
-    summary="Révision de la séance 4 d'IE.3514 (en anglais) : soins "
-            "primaires et de premier recours, médecin traitant et parcours "
-            "coordonné, professionnels de proximité, MSP et CPTS, soins "
-            "non programmés, déserts médicaux, télésanté. Chaque erreur "
-            "renvoie à la partie du cours à relire.",
+    summary="Revision of IE.3514 session 4: primary and first-contact "
+            "care, the registered doctor and the coordinated care pathway, "
+            "local health professionals, MSP and CPTS, unscheduled care, "
+            "medical deserts, telehealth. Each wrong answer points to the "
+            "part of the course to review.",
     keys=tuple(p.key for p in PATTERNS),
 )

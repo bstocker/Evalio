@@ -4,14 +4,15 @@ Une fiche de révision sur la gouvernance du système de santé français, du
 niveau national aux territoires : les six fonctions de la gouvernance, le
 Parlement et l'ONDAM, les directions du ministère (DGS, DGOS, DSS), les
 agences (HAS, ANSM, Santé publique France, CNSA, ATIH, ANS), l'Assurance
-maladie, les ARS, la démocratie sanitaire et les trois cas d'étude.
+maladie, les ARS, la démocratie sanitaire et les trois cas d'étude. Le
+cours est en anglais : les exercices le sont aussi.
 
 Deux formes d'exercices :
 
 - des **textes à trous** : chaque menu complète une phrase du cours. La
-  sortie est une fiche de vérification, une ligne par trou : « conforme
-  au cours », ou la partie et la diapositive à revoir. La cible ne dit
-  donc rien de la réponse, seulement qu'il faut que tout soit conforme ;
+  sortie est une fiche de vérification, une ligne par trou : « consistent
+  with the course », ou la partie et la diapositive à revoir. La cible ne
+  dit donc rien de la réponse, seulement qu'il faut que tout soit conforme ;
 - des **QCM**, sur le modèle de `docker_bases`.
 
 Chaque réponse fausse renvoie à la partie du cours qui porte la bonne : la
@@ -29,15 +30,16 @@ from ..engine import Module, Option, Pattern, qcm_pattern
 from .qcm_docker import _tourner
 
 # Le chapeau demandé par l'enseignant, rappelé en tête de chaque exercice.
-INTRO = ("Ces exercices sont conçus pour vous aider à tirer le meilleur "
-         "parti de vos révisions. Répondez aux questions : chaque erreur "
-         "vous renvoie à la partie du cours à revoir pour mieux comprendre "
-         "la notion.")
+INTRO = ("The following exercises are designed to help you make the most "
+         "of your revision sessions. You answer the questions, and if you "
+         "get a wrong answer, you will be directed to the relevant part of "
+         "the course to review, so that you can improve your understanding "
+         "of the course material.")
 
 
 def _revoir(partie):
-    """Renvoi vers le support : « partie IV.2 du cours, diapositive 23 »."""
-    return "partie %s du cours, diapositive %s" % partie
+    """Renvoi vers le support : « Session 3, part IV.2, slide 23 »."""
+    return "Session 3, part %s, slide %s" % partie
 
 
 # --------------------------------------------------------------------------
@@ -46,10 +48,10 @@ def _revoir(partie):
 
 LECON_TROUS = (
     INTRO,
-    "Chaque menu complète une phrase du cours. Une seule proposition rend "
-    "la phrase exacte.",
-    "La fiche de vérification juge chaque trou séparément : « conforme au "
-    "cours », ou la partie et la diapositive à revoir.",
+    "Each menu completes a sentence from the course. Only one proposal "
+    "makes the sentence correct.",
+    "The review sheet judges each blank separately: “consistent with the "
+    "course”, or the part and slide of the course to review.",
 )
 
 
@@ -71,9 +73,9 @@ def _texte_a_trous(key, name, brief, why, level, tpl, trous):
         renvois.append((blank_id, _revoir(partie)))
 
     def rows(params, get):
-        return ["Trou %d : %s" % (numero, "conforme au cours"
+        return ["Blank %d: %s" % (numero, "consistent with the course"
                                   if get(blank_id)(params)
-                                  else "à revoir, " + renvoi)
+                                  else "to review, " + renvoi)
                 for numero, (blank_id, renvoi) in enumerate(renvois, 1)]
 
     return Pattern(key=key, name=name, brief=brief, why=why,
@@ -83,247 +85,252 @@ def _texte_a_trous(key, name, brief, why, level, tpl, trous):
 
 FONCTIONS = _texte_a_trous(
     key="ie3514_fonctions",
-    name="Gouverner n'est pas soigner",
-    brief="Compléter la définition des fonctions de la gouvernance.",
-    why="Chaque acteur exerce une fonction précise, distincte de la "
-        "production des soins.",
+    name="Governing is not providing care",
+    brief="Complete the definition of the functions of governance.",
+    why="Each actor performs a specific function, distinct from the "
+        "production of care.",
     level=3,
-    tpl="""La gouvernance réunit six fonctions, distinctes de la production
-des soins.
+    tpl="""Governance brings together six functions, distinct from the
+production of care.
 
-[1] @t1@ : définir les règles que les acteurs doivent respecter.
-    « Quelles conditions pour pratiquer la chirurgie cardiaque ? »
+[1] @t1@: defining the rules that actors must follow.
+    “What conditions must be met to perform cardiac surgery?”
 
-[2] @t2@ : répartir les ressources et structurer l'offre.
-    « Combien de services spécialisés sur un territoire ? »
+[2] @t2@: allocating resources and structuring the supply of care.
+    “How many specialised departments in a given territory?”
 
-[3] La HAS, Santé publique France ou l'ATIH produisent une information
-    indispensable ; ce qu'elles ne font pas, c'est @t3@.
+[3] The HAS, Santé publique France or the ATIH produce essential
+    information; what they do not do is @t3@.
 
-[4] L'Assurance maladie finance une grande partie des soins ; en
-    général, ce qu'elle ne fait pas elle-même, c'est @t4@.""",
+[4] The Assurance maladie (national health insurance) finances a large
+    share of care; what it generally does not do itself is @t4@.""",
     trous=(
-        ("t1", "Fonction [1]",
-         ("Réguler", "Organiser", "Décider", "Financer"),
+        ("t1", "Function [1]",
+         ("Regulating", "Organising", "Deciding", "Financing"),
          ("I.2", "9")),
-        ("t2", "Fonction [2]",
-         ("Organiser", "Réguler", "Évaluer et contrôler", "Décider"),
+        ("t2", "Function [2]",
+         ("Organising", "Regulating", "Evaluating and monitoring",
+          "Deciding"),
          ("I.2", "9")),
-        ("t3", "Ce que l'expertise ne fait pas [3]",
-         ("décider à la place des pouvoirs publics",
-          "évaluer les médicaments et les technologies de santé",
-          "surveiller l'état de santé de la population",
-          "recueillir les données d'activité des hôpitaux"),
+        ("t3", "What expertise does not do [3]",
+         ("decide in place of the public authorities",
+          "evaluate medicines and health technologies",
+          "monitor the health status of the population",
+          "collect hospital activity data"),
          ("XII", "47")),
-        ("t4", "Ce que le financeur ne fait pas [4]",
-         ("délivrer les soins",
-          "rembourser les soins",
-          "négocier les conventions avec les professionnels",
-          "réguler une grande partie des soins de ville"),
+        ("t4", "What the payer does not do [4]",
+         ("deliver care",
+          "reimburse care",
+          "negotiate agreements with health professionals",
+          "regulate a large share of community care"),
          ("XII", "47")),
     ),
 )
 
 PARLEMENT = _texte_a_trous(
     key="ie3514_lfss_ondam",
-    name="Le Parlement, la LFSS et l'ONDAM",
-    brief="Compléter ce que le Parlement vote, et ce qu'est l'ONDAM.",
-    why="Le Parlement ne vote pas seulement des règles : il fixe aussi le "
-        "cadre financier.",
+    name="Parliament, the LFSS and the ONDAM",
+    brief="Complete what Parliament votes on, and what the ONDAM is.",
+    why="Parliament does not only vote on rules: it also sets the "
+        "financial framework.",
     level=4,
-    tpl="""[1] Depuis @t1@, le Parlement vote chaque année la loi de
-    financement de la sécurité sociale (LFSS).
+    tpl="""[1] Since @t1@, Parliament has voted each year on the social
+    security financing act (LFSS).
 
-[2] Cette loi est préparée par @t2@, qui suit aussi les recettes
-    et les dépenses des branches.
+[2] This act is prepared by @t2@, which also monitors the revenue
+    and expenditure of the branches.
 
-[3] L'ONDAM qu'elle fixe est @t3@ : un patient
-    qui tombe malade en fin d'année continue d'être soigné, même si
-    beaucoup de soins ont déjà été consommés.
+[3] The ONDAM (national health insurance spending target) that it sets
+    is @t3@: a patient who falls ill at the end of the year
+    continues to receive care, even if a lot of care has already been
+    consumed.
 
-[4] Le Parlement agit donc à la fois comme législateur et comme
+[4] Parliament therefore acts both as legislator and as
     @t4@.""",
     trous=(
-        ("t1", "Année [1]",
+        ("t1", "Year [1]",
          ("1996", "1945", "2004", "2010"),
          ("II.1", "13")),
-        ("t2", "Qui prépare la LFSS ? [2]",
-         ("la Direction de la sécurité sociale (DSS)",
-          "la Direction générale de l'offre de soins (DGOS)",
-          "la Caisse nationale de l'Assurance maladie (CNAM)",
-          "la Haute Autorité de santé (HAS)"),
+        ("t2", "Who prepares the LFSS? [2]",
+         ("the Social Security Directorate (DSS)",
+          "the Directorate General for Healthcare Provision (DGOS)",
+          "the National Health Insurance Fund (CNAM)",
+          "the National Authority for Health (HAS)"),
          ("II.1", "13")),
-        ("t3", "Nature de l'ONDAM [3]",
-         ("un objectif de dépenses, instrument de régulation",
-          "un budget limitatif, comme les crédits d'une administration",
-          "une enveloppe négociée chaque année entre la CNAM et les "
-          "médecins",
-          "un plafond de remboursement fixé pour chaque assuré"),
+        ("t3", "Nature of the ONDAM [3]",
+         ("a spending target, a regulatory instrument",
+          "a capped budget, like the appropriations of a government "
+          "department",
+          "an envelope negotiated each year between the CNAM and doctors",
+          "a reimbursement ceiling set for each insured person"),
          ("II.2", "14")),
-        ("t4", "Second rôle du Parlement [4]",
-         ("financeur du système",
-          "opérateur de soins",
-          "autorité d'expertise scientifique",
-          "pilote régional de l'offre"),
+        ("t4", "Parliament's second role [4]",
+         ("funder of the system",
+          "care provider",
+          "scientific expert authority",
+          "regional steering body for the supply of care"),
          ("II.1", "13")),
     ),
 )
 
 DIRECTIONS = _texte_a_trous(
     key="ie3514_directions",
-    name="DGS, DGOS ou DSS ?",
-    brief="Attribuer chaque mission à la bonne direction.",
-    why="Les directions travaillent sur les mêmes sujets, mais pas au même "
-        "point de la chaîne.",
+    name="DGS, DGOS or DSS?",
+    brief="Assign each mission to the right directorate.",
+    why="The directorates work on the same topics, but not at the same "
+        "point in the chain.",
     level=3,
-    tpl="""[1] Pour le cancer, les programmes de dépistage relèvent de @t1@.
+    tpl="""[1] For cancer, screening programmes fall under @t1@.
 
-[2] La disponibilité des oncologues et les autorisations d'activités
-    spécialisées relèvent de @t2@.
+[2] The availability of oncologists and the authorisations for
+    specialised activities fall under @t2@.
 
-[3] Le Centre de crise sanitaire, qui prépare le système aux menaces
-    sanitaires, est rattaché à @t3@.
+[3] The Health Crisis Centre, which prepares the system for health
+    threats, is attached to @t3@.
 
-[4] La tutelle de la CNAV, de la CNAF et de l'Urssaf Caisse nationale
-    revient à @t4@.""",
+[4] Supervision of the CNAV, the CNAF and the Urssaf Caisse nationale
+    falls to @t4@.""",
     trous=(
-        ("t1", "Direction [1]",
-         ("la DGS", "la DGOS", "la DSS", "la CNAM"),
+        ("t1", "Directorate [1]",
+         ("the DGS", "the DGOS", "the DSS", "the CNAM"),
          ("III.3", "19")),
-        ("t2", "Direction [2]",
-         ("la DGOS", "la DGS", "la DSS", "la CNAM"),
+        ("t2", "Directorate [2]",
+         ("the DGOS", "the DGS", "the DSS", "the CNAM"),
          ("III.3", "19")),
-        ("t3", "Direction [3]",
-         ("la DGS", "la DGOS", "la DSS", "la CNAM"),
+        ("t3", "Directorate [3]",
+         ("the DGS", "the DGOS", "the DSS", "the CNAM"),
          ("III.1", "17")),
-        ("t4", "Direction [4]",
-         ("la DSS", "la DGS", "la DGOS", "la CNAM"),
+        ("t4", "Directorate [4]",
+         ("the DSS", "the DGS", "the DGOS", "the CNAM"),
          ("III.4", "20")),
     ),
 )
 
 MEDICAMENT = _texte_a_trous(
     key="ie3514_medicament",
-    name="Le parcours d'un médicament remboursé",
-    brief="Compléter, étape par étape, le chemin d'un médicament jusqu'à "
-          "son remboursement.",
-    why="Sept étapes, et presque autant d'acteurs : aucun ne décide seul.",
+    name="The journey of a reimbursed medicine",
+    brief="Complete, step by step, the path of a medicine up to its "
+          "reimbursement.",
+    why="Seven steps, and almost as many actors: none of them decides "
+        "alone.",
     level=4,
-    tpl="""[1] Avant d'être vendu, un médicament reçoit une autorisation de mise
-    sur le marché (AMM), délivrée par @t1@ au vu
-    du rapport bénéfice/risque.
+    tpl="""[1] Before it can be sold, a medicine receives a marketing
+    authorisation (AMM), granted by @t1@ on the basis
+    of its benefit/risk ratio.
 
-[2] La commission de la transparence de @t2@ évalue ensuite le service
-    médical rendu et l'amélioration qu'il apporte.
+[2] The Transparency Committee of @t2@ then evaluates its medical
+    benefit and the improvement it brings.
 
-[3] Le prix est négocié avec l'industriel par @t3@.
+[3] The price is negotiated with the manufacturer by @t3@.
 
-[4] Le taux de remboursement est fixé par @t4@ ; la décision finale de
-    prise en charge revient aux pouvoirs publics.
+[4] The reimbursement rate is set by @t4@; the final decision on
+    coverage lies with the public authorities.
 
-[5] Une fois le médicament sur le marché, la pharmacovigilance relève
-    de @t5@.""",
+[5] Once the medicine is on the market, pharmacovigilance is the
+    responsibility of @t5@.""",
     trous=(
-        ("t1", "Qui autorise ? [1]",
-         ("l'ANSM ou l'Union européenne", "la HAS", "le CEPS", "l'UNCAM"),
+        ("t1", "Who authorises? [1]",
+         ("the ANSM or the European Union", "the HAS", "the CEPS",
+          "the UNCAM"),
          ("VIII.1", "40")),
-        ("t2", "Qui évalue le service rendu ? [2]",
-         ("la HAS", "l'ANSM", "le CEPS", "Santé publique France"),
+        ("t2", "Who evaluates the medical benefit? [2]",
+         ("the HAS", "the ANSM", "the CEPS", "Santé publique France"),
          ("VIII.1", "40")),
-        ("t3", "Qui négocie le prix ? [3]",
-         ("le CEPS", "l'UNCAM", "la HAS", "la DSS"),
+        ("t3", "Who negotiates the price? [3]",
+         ("the CEPS", "the UNCAM", "the HAS", "the DSS"),
          ("VIII.1", "40")),
-        ("t4", "Qui fixe le taux ? [4]",
-         ("l'UNCAM", "le CEPS", "la HAS", "la DSS"),
+        ("t4", "Who sets the rate? [4]",
+         ("the UNCAM", "the CEPS", "the HAS", "the DSS"),
          ("VIII.1", "40")),
-        ("t5", "Qui surveille ? [5]",
-         ("l'ANSM", "Santé publique France", "la HAS", "l'ATIH"),
+        ("t5", "Who monitors? [5]",
+         ("the ANSM", "Santé publique France", "the HAS", "the ATIH"),
          ("IV.3", "24")),
     ),
 )
 
 ARS = _texte_a_trous(
     key="ie3514_ars",
-    name="L'ARS, pilote régional",
-    brief="Compléter ce qui fonde l'ARS et ce dont elle dispose.",
-    why="Le niveau national fixe le cadre ; l'ARS l'adapte à sa région.",
+    name="The ARS, regional steering body",
+    brief="Complete what the ARS is founded on and what it has at its "
+          "disposal.",
+    why="The national level sets the framework; the ARS adapts it to its "
+        "region.",
     level=4,
-    tpl="""[1] Pour mettre fin à la fragmentation, les agences régionales de
-    santé ont été créées par @t1@, puis installées
-    en 2010.
+    tpl="""[1] To put an end to fragmentation, the regional health agencies
+    (ARS) were created by @t1@, then set up
+    in 2010.
 
-[2] Le projet régional de santé comprend un cadre d'orientation
-    stratégique à long terme et @t2@, qui fixe
-    les objectifs opérationnels.
+[2] The regional health project comprises a long-term strategic
+    orientation framework and @t2@, which sets
+    the operational objectives.
 
-[3] La capacité de financement souple de l'ARS, pour la prévention,
-    l'organisation des soins et l'innovation, s'appelle @t3@.
+[3] The ARS's flexible funding capacity, for prevention, the
+    organisation of care and innovation, is called @t3@.
 
-[4] Au plus près du terrain, l'ARS conclut avec les collectivités
-    territoriales des @t4@.""",
+[4] Closest to the ground, the ARS concludes with local authorities
+    @t4@.""",
     trous=(
-        ("t1", "Texte fondateur [1]",
-         ("la loi HPST de 2009",
-          "la loi du 29 décembre 2011",
-          "la LFSS de 1996",
-          "les ordonnances de 1945"),
+        ("t1", "Founding text [1]",
+         ("the HPST Act of 2009",
+          "the Act of 29 December 2011",
+          "the 1996 LFSS",
+          "the 1945 ordinances"),
          ("VI.1", "32")),
-        ("t2", "Second volet du projet régional [2]",
-         ("un schéma régional de santé",
-          "un contrat local de santé",
-          "une stratégie nationale de santé",
-          "un fonds d'intervention régional"),
+        ("t2", "Second component of the regional project [2]",
+         ("a regional health scheme",
+          "a local health contract",
+          "a national health strategy",
+          "a regional intervention fund"),
          ("VI.3", "34")),
-        ("t3", "Financement [3]",
-         ("le FIR", "l'ONDAM", "le PMSI", "la LFSS"),
+        ("t3", "Funding [3]",
+         ("the FIR", "the ONDAM", "the PMSI", "the LFSS"),
          ("VI.4", "35")),
-        ("t4", "Accords locaux [4]",
-         ("contrats locaux de santé (CLS)",
-          "conventions médicales",
-          "conseils territoriaux de santé (CTS)",
-          "autorisations d'activité de soins"),
+        ("t4", "Local agreements [4]",
+         ("local health contracts (CLS)",
+          "medical agreements (conventions)",
+          "territorial health councils (CTS)",
+          "authorisations for care activities"),
          ("VII.1", "37")),
     ),
 )
 
 DEMOCRATIE = _texte_a_trous(
     key="ie3514_democratie",
-    name="La démocratie sanitaire, échelon par échelon",
-    brief="Placer chaque instance à son échelon, et distinguer celle qui "
-          "décide.",
-    why="Ne jamais confondre une instance qui décide et une instance "
-        "consultative.",
+    name="Health democracy, level by level",
+    brief="Place each body at its level, and identify the one that "
+          "decides.",
+    why="Never confuse a body that decides with an advisory body.",
     level=4,
-    tpl="""[1] Au niveau national, @t1@ est un organe consultatif placé auprès
-    du ministre.
+    tpl="""[1] At national level, @t1@ is an advisory body attached to the
+    minister.
 
-[2] Auprès de chaque ARS, @t2@ représente professionnels,
-    établissements, collectivités, associations et usagers, et rend des
-    avis sur la politique régionale.
+[2] Alongside each ARS, @t2@ represents professionals,
+    institutions, local authorities, associations and users, and issues
+    opinions on regional policy.
 
-[3] Au niveau territorial, la concertation locale passe par
+[3] At territorial level, local consultation takes place through
     @t3@.
 
-[4] Ces instances consultent, représentent et donnent des avis ; seule
-    @t4@ décide et pilote, dans le cadre de ses compétences.""",
+[4] These bodies consult, represent and give opinions; only
+    @t4@ decides and steers, within the limits of its powers.""",
     trous=(
-        ("t1", "Instance nationale [1]",
-         ("la Conférence nationale de santé (CNS)",
-          "la Haute Autorité de santé (HAS)",
-          "la Caisse nationale de l'Assurance maladie (CNAM)",
+        ("t1", "National body [1]",
+         ("the National Health Conference (CNS)",
+          "the National Authority for Health (HAS)",
+          "the National Health Insurance Fund (CNAM)",
           "Santé publique France"),
          ("VII.2", "38")),
-        ("t2", "Instance régionale [2]",
-         ("la CRSA", "le CTS", "la CNS", "le CLS"),
+        ("t2", "Regional body [2]",
+         ("the CRSA", "the CTS", "the CNS", "the CLS"),
          ("VII.2", "38")),
-        ("t3", "Instance territoriale [3]",
-         ("les conseils territoriaux de santé (CTS)",
-          "la CRSA",
-          "les CPAM",
-          "les GHT"),
+        ("t3", "Territorial body [3]",
+         ("the territorial health councils (CTS)",
+          "the CRSA",
+          "the CPAMs",
+          "the GHTs"),
          ("VII.2", "38")),
-        ("t4", "Qui décide ? [4]",
-         ("l'ARS", "la CRSA", "la CNS", "la CPAM"),
+        ("t4", "Who decides? [4]",
+         ("the ARS", "the CRSA", "the CNS", "the CPAM"),
          ("VII.2", "38")),
     ),
 )
@@ -340,217 +347,221 @@ TROUS = (FONCTIONS, PARLEMENT, DIRECTIONS, MEDICAMENT, ARS, DEMOCRATIE)
 # Comme dans qcm_docker, la bonne réponse est écrite en premier puis
 # déplacée par `_tourner`.
 QUESTIONS = (
-    ("Une question est posée : « Quel financement pour les soins de "
-     "ville ? ». Dans la grille des six fonctions de la gouvernance, de "
-     "laquelle relève-t-elle ?",
-     ("Financer : déterminer quelles activités sont financées, à quel "
-      "niveau et selon quelles règles",
-      "Organiser : répartir les ressources et structurer l'offre",
-      "Réguler : définir les règles que les acteurs doivent respecter",
-      "Décider : fixer les grandes orientations politiques"),
+    ("The following question is asked: “What funding for community "
+     "care?”. In the grid of the six functions of governance, which one "
+     "does it belong to?",
+     ("Financing: determining which activities are funded, at what level "
+      "and under what rules",
+      "Organising: allocating resources and structuring the supply of "
+      "care",
+      "Regulating: defining the rules that actors must follow",
+      "Deciding: setting the major policy directions"),
      0, 3,
-     "C'est l'exemple même du cours pour la fonction « financer ». "
-     "« Combien de services spécialisés sur un territoire ? » relèverait "
-     "d'organiser, et « Faut-il développer la prévention ? » de décider.",
+     "This is the course's own example for the “financing” function. "
+     "“How many specialised departments in a given territory?” would "
+     "belong to organising, and “Should prevention be developed?” to "
+     "deciding.",
      ("I.2", "9")),
 
-    ("Fin novembre, les dépenses d'assurance maladie dépassent déjà "
-     "l'ONDAM voté pour l'année. Que se passe-t-il pour un patient qui "
-     "tombe malade en décembre ?",
-     ("Il est soigné et pris en charge : l'ONDAM est un objectif de "
-      "dépenses, pas un budget limitatif",
-      "Ses soins non urgents sont reportés à l'année suivante, faute de "
-      "crédits",
-      "Le Parlement doit voter une nouvelle LFSS avant tout nouveau "
-      "remboursement",
-      "L'ARS plafonne le nombre de consultations remboursées par assuré"),
+    ("At the end of November, health insurance spending already exceeds "
+     "the ONDAM voted for the year. What happens to a patient who falls "
+     "ill in December?",
+     ("They are treated and covered: the ONDAM is a spending target, not "
+      "a capped budget",
+      "Their non-urgent care is postponed to the following year, for lack "
+      "of funds",
+      "Parliament must vote a new LFSS before any further reimbursement",
+      "The ARS caps the number of reimbursed consultations per insured "
+      "person"),
      0, 3,
-     "L'ONDAM est une trajectoire de dépenses fixée à l'avance, un "
-     "instrument de régulation. La dépense réelle résulte de millions de "
-     "décisions de patients, de médecins et d'établissements ; on agit "
-     "ensuite sur les tarifs, les prescriptions, l'organisation et la "
-     "pertinence.",
+     "The ONDAM is a spending trajectory set in advance, a regulatory "
+     "instrument. Actual spending results from millions of decisions by "
+     "patients, doctors and institutions; action is then taken on "
+     "tariffs, prescriptions, organisation and appropriateness of care.",
      ("II.2", "14")),
 
-    ("Laquelle de ces propositions n'est **pas** l'une des trois "
-     "orientations du projet de stratégie nationale de santé 2023-2033 ?",
-     ("Garantir à chaque patient un médecin traitant à moins de trente "
-      "minutes de chez lui",
-      "Vivre plus longtemps en bonne santé",
-      "Répondre aux besoins de santé sur l'ensemble du territoire",
-      "Améliorer la résilience du système face aux crises et aux enjeux "
-      "environnementaux"),
+    ("Which of these is **not** one of the three orientations of the "
+     "draft national health strategy 2023-2033?",
+     ("Guaranteeing every patient a registered doctor less than thirty "
+      "minutes from home",
+      "Living longer in good health",
+      "Meeting health needs throughout the territory",
+      "Improving the resilience of the system to crises and environmental "
+      "challenges"),
      0, 4,
-     "Les trois orientations sont : vivre plus longtemps en bonne santé, "
-     "répondre aux besoins sur tout le territoire, et rendre le système "
-     "plus résilient. La stratégie, inscrite au code de la santé "
-     "publique, fixe un cadre pluriannuel ; les niveaux régional et local "
-     "le traduisent en actions.",
+     "The three orientations are: living longer in good health, meeting "
+     "needs throughout the territory, and making the system more "
+     "resilient. The strategy, enshrined in the Public Health Code, sets "
+     "a multi-year framework; the regional and local levels translate it "
+     "into action.",
      ("II.3", "15")),
 
-    ("Sur le vieillissement, quelle répartition des rôles le cours "
-     "retient-il ?",
-     ("La DGS prévient, la DGOS organise les soins, la DSS finance, la "
-      "CNSA soutient l'autonomie",
-      "La DGOS prévient, la DGS organise les soins, la DSS finance, la "
-      "CNSA soutient l'autonomie",
-      "La DGS prévient, la DSS organise les soins, la CNSA finance, la "
-      "DGOS soutient l'autonomie",
-      "La CNSA prévient, organise les soins et finance ; les directions "
-      "du ministère n'interviennent pas"),
+    ("On ageing, what division of roles does the course set out?",
+     ("The DGS prevents, the DGOS organises care, the DSS finances, the "
+      "CNSA supports autonomy",
+      "The DGOS prevents, the DGS organises care, the DSS finances, the "
+      "CNSA supports autonomy",
+      "The DGS prevents, the DSS organises care, the CNSA finances, the "
+      "DGOS supports autonomy",
+      "The CNSA prevents, organises care and finances; the ministry's "
+      "directorates are not involved"),
      0, 4,
-     "C'est le triangle à retenir : DGS pour la santé de la population, "
-     "DGOS pour l'organisation des soins, DSS pour le financement de la "
-     "protection sociale. Aucune institution ne couvre seule le sujet.",
+     "This is the triangle to remember: DGS for population health, DGOS "
+     "for the organisation of care, DSS for the financing of social "
+     "protection. No single institution covers the issue on its own.",
      ("III.4", "20")),
 
-    ("Un camarade affirme : « C'est la HAS qui décide qu'un médicament "
-     "sera remboursé. » Qu'en dit le cours ?",
-     ("C'est faux : la HAS produit une évaluation scientifique qui éclaire "
-      "une décision prise ensuite par d'autres",
-      "C'est exact : la commission de la transparence de la HAS fixe le "
-      "taux de remboursement",
-      "C'est faux : c'est l'ANSM qui décide du remboursement en délivrant "
-      "l'AMM",
-      "C'est faux : le CEPS décide seul du remboursement en fixant le prix"),
+    ("A classmate claims: “It is the HAS that decides whether a medicine "
+     "will be reimbursed.” What does the course say?",
+     ("That is wrong: the HAS produces a scientific evaluation that "
+      "informs a decision taken afterwards by others",
+      "That is right: the HAS Transparency Committee sets the "
+      "reimbursement rate",
+      "That is wrong: the ANSM decides on reimbursement by granting the "
+      "marketing authorisation (AMM)",
+      "That is wrong: the CEPS alone decides on reimbursement by setting "
+      "the price"),
      0, 4,
-     "La HAS n'est qu'une brique d'expertise : l'ANSM ou l'Europe "
-     "autorisent, la HAS évalue le service rendu, le CEPS négocie le "
-     "prix, l'UNCAM fixe le taux, les pouvoirs publics décident et "
-     "l'Assurance maladie rembourse. Expertise n'est pas décision "
-     "politique.",
+     "The HAS is only one building block of expertise: the ANSM or the "
+     "EU authorises, the HAS evaluates the medical benefit, the CEPS "
+     "negotiates the price, the UNCAM sets the rate, the public "
+     "authorities decide and the Assurance maladie reimburses. Expertise "
+     "is not a political decision.",
      ("VIII.1", "40")),
 
-    ("L'affaire du Mediator a durablement changé la gouvernance du "
-     "médicament. Quelle évolution le cours retient-il ?",
-     ("L'ANSM succède à l'Afssaps en 2012, après la loi du 29 décembre "
-      "2011 qui renforce la sécurité du médicament",
-      "La HAS est créée en 2012 pour reprendre les missions de l'Afssaps",
-      "Santé publique France naît de la fusion de l'Afssaps et de l'INPES",
-      "L'Afssaps est rattachée à la CNAM pour contrôler les "
-      "remboursements"),
+    ("The Mediator affair (a drug safety scandal) had a lasting impact on "
+     "the governance of medicines. Which change does the course "
+     "highlight?",
+     ("The ANSM succeeded the Afssaps in 2012, after the Act of "
+      "29 December 2011 strengthening drug safety",
+      "The HAS was created in 2012 to take over the missions of the "
+      "Afssaps",
+      "Santé publique France was born from the merger of the Afssaps and "
+      "the INPES",
+      "The Afssaps was attached to the CNAM to control reimbursements"),
      0, 4,
-     "Le cours décrit la chaîne : incident, analyse des défaillances, "
-     "changement des règles, changement des institutions, nouveaux "
-     "contrôles. Le changement d'institution, ici, c'est l'ANSM qui "
-     "remplace l'Afssaps.",
+     "The course describes the chain: incident, analysis of failures, "
+     "change of rules, change of institutions, new controls. The change "
+     "of institution here is the ANSM replacing the Afssaps.",
      ("IV.3", "24")),
 
-    ("Santé publique France a été créée en 2016 par la fusion de trois "
-     "organismes. Lequel n'en faisait **pas** partie ?",
-     ("L'Afssaps",
-      "L'Institut de veille sanitaire",
-      "L'INPES",
-      "L'EPRUS"),
+    ("Santé publique France was created in 2016 by merging three bodies. "
+     "Which one was **not** among them?",
+     ("The Afssaps",
+      "The Institut de veille sanitaire (health surveillance institute)",
+      "The INPES",
+      "The EPRUS"),
      0, 4,
-     "La fusion réunit l'Institut de veille sanitaire, l'INPES et "
-     "l'EPRUS, pour rapprocher connaissance, surveillance, alerte, "
-     "prévention et intervention. L'Afssaps, elle, est devenue l'ANSM.",
+     "The merger brought together the Institut de veille sanitaire, the "
+     "INPES and the EPRUS, to bring knowledge, surveillance, alert, "
+     "prevention and intervention closer together. The Afssaps, for its "
+     "part, became the ANSM.",
      ("IV.4", "25")),
 
-    ("Les données du PMSI montrent qu'un service hospitalier a très peu "
-     "d'activité. Quel est le rôle de l'ATIH dans la suite ?",
-     ("Elle produit l'information ; d'autres acteurs, comme le ministère, "
-      "l'ARS ou l'Assurance maladie, s'en servent pour décider",
-      "Elle décide de fermer le service, puisqu'elle gère le PMSI",
-      "Elle retire au service son autorisation d'activité",
-      "Elle suspend le financement de l'établissement jusqu'à la "
-      "prochaine LFSS"),
+    ("PMSI data show that a hospital department has very little "
+     "activity. What is the role of the ATIH in what follows?",
+     ("It produces the information; other actors, such as the ministry, "
+      "the ARS or the Assurance maladie, use it to decide",
+      "It decides to close the department, since it manages the PMSI",
+      "It withdraws the department's activity authorisation",
+      "It suspends the institution's funding until the next LFSS"),
      0, 3,
-     "L'ATIH recueille les données d'activité, gère le PMSI et produit "
-     "des analyses médico-économiques. Elle ne décide pas qu'un hôpital "
-     "doit fermer : produire l'information n'est pas décider.",
-     ("IV.5 à IV.7", "26")),
+     "The ATIH collects activity data, manages the PMSI and produces "
+     "medico-economic analyses. It does not decide that a hospital must "
+     "close: producing information is not deciding.",
+     ("IV.5 to IV.7", "26")),
 
-    ("Pour des étudiants venus d'autres pays, quelle particularité "
-     "française le cours souligne-t-il ?",
-     ("Le payeur n'est pas une direction du ministère : c'est la sécurité "
-      "sociale, héritage du modèle d'assurance sociale de 1945",
-      "Le ministère de la Santé rembourse directement les assurés, par "
-      "l'intermédiaire de la DSS",
-      "Chaque ARS rembourse les assurés de sa région sur son propre budget",
-      "Le Parlement fixe chaque année le montant remboursé à chaque assuré"),
+    ("For students from other countries, which French specificity does "
+     "the course emphasise?",
+     ("The payer is not a ministry directorate: it is social security, "
+      "a legacy of the 1945 social insurance model",
+      "The Ministry of Health reimburses insured persons directly, "
+      "through the DSS",
+      "Each ARS reimburses the insured persons of its region from its own "
+      "budget",
+      "Parliament sets each year the amount reimbursed to each insured "
+      "person"),
      0, 3,
-     "L'État définit les politiques, régule, organise, planifie et "
-     "autorise ; la sécurité sociale finance, rembourse, négocie les "
-     "conventions et régule une grande partie des soins de ville. Les "
-     "deux travaillent ensemble sans se confondre.",
+     "The State defines policies, regulates, organises, plans and "
+     "authorises; social security finances, reimburses, negotiates "
+     "agreements and regulates a large share of community care. The two "
+     "work together without merging.",
      ("V.1", "29")),
 
-    ("Pourquoi une grande partie de la régulation des médecins, "
-     "infirmiers, pharmaciens et kinésithérapeutes passe-t-elle par des "
-     "conventions négociées ?",
-     ("Parce qu'ils exercent en libéral : l'État ne peut pas leur donner "
-      "d'instructions comme à ses fonctionnaires",
-      "Parce que la loi interdit à l'État de fixer des règles pour les "
-      "professions de santé",
-      "Parce que l'ONDAM est voté par les représentants des professionnels",
-      "Parce que les ARS n'ont aucune compétence sur les soins de ville"),
+    ("Why does a large part of the regulation of doctors, nurses, "
+     "pharmacists and physiotherapists go through negotiated agreements?",
+     ("Because they are self-employed: the State cannot give them "
+      "instructions as it does to its civil servants",
+      "Because the law forbids the State from setting rules for the "
+      "health professions",
+      "Because the ONDAM is voted by the professionals' representatives",
+      "Because the ARS have no powers over community care"),
      0, 3,
-     "Liberté professionnelle et financement collectif donnent la "
-     "régulation conventionnelle : tarifs, rémunération, engagements, "
-     "organisation, prévention se négocient avec l'Assurance maladie.",
+     "Professional freedom plus collective funding gives conventional "
+     "regulation: tariffs, remuneration, commitments, organisation and "
+     "prevention are negotiated with the Assurance maladie.",
      ("V.2", "30")),
 
-    ("Dans le réseau de l'Assurance maladie, lequel de ces rôles revient "
-     "à l'UNCAM ?",
-     ("Les relations conventionnelles avec les professionnels et "
-      "certaines décisions de remboursement",
-      "La tête du réseau : orientations nationales, gestion du risque et "
-      "données de santé",
-      "Les relations locales avec les assurés : la partie la plus visible "
-      "pour le patient",
-      "La préparation de la LFSS et le suivi des comptes des branches"),
+    ("In the Assurance maladie network, which of these roles belongs to "
+     "the UNCAM?",
+     ("Conventional relations with health professionals and certain "
+      "reimbursement decisions",
+      "Heading the network: national orientations, risk management and "
+      "health data",
+      "Local relations with insured persons: the part most visible to "
+      "the patient",
+      "Preparing the LFSS and monitoring the accounts of the branches"),
      0, 4,
-     "L'UNCAM, Union nationale des caisses d'assurance maladie, porte les "
-     "relations conventionnelles et certaines décisions sur les taux de "
-     "remboursement. La tête du réseau est la CNAM, le niveau local la "
-     "CPAM, et la LFSS est préparée par la DSS.",
+     "The UNCAM, the National Union of Health Insurance Funds, handles "
+     "conventional relations and certain decisions on reimbursement "
+     "rates. The head of the network is the CNAM, the local level is the "
+     "CPAM, and the LFSS is prepared by the DSS.",
      ("V.2", "30")),
 
-    ("Un hôpital a les financements et les médecins pour ouvrir une "
-     "activité soumise à autorisation. Que lui faut-il encore ?",
-     ("L'autorisation du directeur général de l'ARS, au regard des besoins "
-      "de la population et du projet régional de santé",
-      "Un avis favorable de la CRSA, qui délivre les autorisations "
-      "d'activité",
-      "Une certification préalable de la HAS, qui vaut autorisation",
-      "L'inscription de cette activité dans la LFSS de l'année"),
+    ("A hospital has the funding and the doctors to open an activity "
+     "that requires authorisation. What else does it need?",
+     ("Authorisation from the director general of the ARS, in light of "
+      "the population's needs and the regional health project",
+      "A favourable opinion from the CRSA, which grants activity "
+      "authorisations",
+      "Prior certification by the HAS, which serves as authorisation",
+      "The inclusion of this activity in that year's LFSS"),
      0, 4,
-     "« Nous avons l'argent et les médecins, donc nous ouvrons » ne suffit "
-     "pas : l'ARS analyse le besoin régional et accorde ou refuse "
-     "l'autorisation. La CRSA ne fait que donner des avis ; la HAS "
-     "certifie la qualité une fois l'activité en place.",
+     "“We have the money and the doctors, so we open” is not enough: the "
+     "ARS analyses regional need and grants or refuses the "
+     "authorisation. The CRSA only gives opinions; the HAS certifies "
+     "quality once the activity is up and running.",
      ("VIII.2", "41")),
 
-    ("Une crise sanitaire déborde sur la sécurité, l'ordre public et la "
-     "protection civile. Comment s'articulent l'ARS et le préfet ?",
-     ("Leurs responsabilités sont complémentaires : l'ARS ne remplace pas "
-      "le préfet",
-      "L'ARS prend la direction de la sécurité et de la protection civile "
-      "de la région",
-      "Le préfet est dessaisi : toute crise sanitaire relève de la seule "
-      "ARS",
-      "Le Centre de crise sanitaire se substitue à l'ARS comme au préfet"),
+    ("A health crisis spills over into security, public order and civil "
+     "protection. How do the ARS and the prefect work together?",
+     ("Their responsibilities are complementary: the ARS does not "
+      "replace the prefect",
+      "The ARS takes charge of security and civil protection in the "
+      "region",
+      "The prefect is relieved of responsibility: any health crisis falls "
+      "to the ARS alone",
+      "The Health Crisis Centre takes the place of both the ARS and the "
+      "prefect"),
      0, 4,
-     "En crise, l'ARS assure veille, alerte et gestion de crise "
-     "sanitaire, avec la DGS, Santé publique France, les établissements, "
-     "les professionnels et le préfet. Dès que la crise dépasse le seul "
-     "champ sanitaire, les deux responsabilités se complètent.",
+     "In a crisis, the ARS ensures health surveillance, alert and health "
+     "crisis management, together with the DGS, Santé publique France, "
+     "institutions, professionals and the prefect. As soon as the crisis "
+     "goes beyond the health field alone, the two responsibilities "
+     "complement each other.",
      ("VI.5", "35")),
 
-    ("« Viser l'égalité de résultat sans imposer une organisation "
-     "strictement identique. » À quelle tension de la gouvernance cette "
-     "réponse correspond-elle ?",
-     ("Égalité ou différenciation territoriale",
-      "Autonomie professionnelle ou régulation",
-      "Besoins ou ressources",
-      "Expertise ou décision politique"),
+    ("“Aim for equal outcomes without imposing a strictly identical "
+     "organisation.” Which tension of governance does this answer "
+     "address?",
+     ("Equality or territorial differentiation",
+      "Professional autonomy or regulation",
+      "Needs or resources",
+      "Expertise or political decision"),
      0, 4,
-     "On veut la même qualité de soins pour tous, mais les territoires "
-     "diffèrent par leurs professionnels, leurs distances et leurs "
-     "équipements. Ces tensions sont des arbitrages permanents, jamais "
-     "des problèmes résolus.",
+     "We want the same quality of care for everyone, but territories "
+     "differ in their professionals, distances and facilities. These "
+     "tensions are permanent trade-offs, never solved problems.",
      ("X", "45")),
 )
 
@@ -565,11 +576,15 @@ def _question(rang, question, choices, answer, level, explanation, partie):
     choices, answer = _tourner(choices, answer, rang)
     pattern = qcm_pattern(
         "ie3514_q%02d" % rang, rang, question, choices, answer, level,
-        "%s Pour approfondir : %s." % (explanation, renvoi))
+        explanation)
+    # Les retours sont réécrits en anglais, la langue du cours (le moteur
+    # écrit « Exact. »), comme dans ie3514_s4.
+    juste = "Correct. %s To go further: %s." % (explanation, renvoi)
+    faux = "That is not the right answer. Review: %s." % renvoi
     label, options = pattern.blanks["choix"]
-    options = [o if o.id == pattern.ref["choix"] else replace(
-        o, note="Ce n'est pas la bonne réponse. À revoir : %s." % renvoi)
-        for o in options]
+    options = [replace(o, note=juste if o.id == pattern.ref["choix"]
+                       else faux)
+               for o in options]
     return replace(pattern, blanks={"choix": (label, options)},
                    lesson=(INTRO,))
 
@@ -582,9 +597,9 @@ MODULE = Module(
     key="ie3514_s3",
     title="IE3514 - Revision Sheet for Session 3",
     level=4,
-    summary="La gouvernance du système de santé français, du niveau "
-            "national aux territoires : six fonctions, Parlement et ONDAM, "
-            "DGS, DGOS et DSS, agences, Assurance maladie, ARS, démocratie "
-            "sanitaire. " + INTRO,
+    summary="The governance of the French health system, from the national "
+            "level to the territories: six functions, Parliament and the "
+            "ONDAM, DGS, DGOS and DSS, agencies, Assurance maladie, ARS, "
+            "health democracy. " + INTRO,
     keys=tuple(p.key for p in PATTERNS),
 )
