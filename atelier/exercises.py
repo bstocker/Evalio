@@ -22,8 +22,9 @@ from .engine import (  # noqa: F401  — réexportés pour le reste de l'appli
     shuffled_blanks, specs, substitute, target_rows, unregister,
 )
 from .modules import (arguments, boucles, chaines, conditions, docker_actions,
-                      docker_bases, linux_droits, linux_fichiers, linux_filtres, linux_shell,
-                      qcm_docker, recursif, reseau_masques, tableaux)
+                      docker_bases, ie3514_s4, linux_droits, linux_fichiers,
+                      linux_filtres, linux_shell, qcm_docker, recursif,
+                      reseau_masques, tableaux)
 
 # Chapitres livrés avec l'application. Le chapitre QCM reçoit en plus, à
 # l'exécution, les modules importés depuis la console (cf. `refresh`).
@@ -64,6 +65,15 @@ BASE_CHAPTERS = (
                 "propositions, une seule juste. Importables au format Excel.",
         modules=(qcm_docker.MODULE,),
     ),
+    Chapter(
+        key="revisions",
+        title="Révisions",
+        summary="Des fiches de révision tirées des cours : questions et "
+                "textes à trous, chaque erreur renvoyant à la partie du "
+                "cours à relire.",
+        modules=(ie3514_s4.MODULE,),
+        action="Vérifier mes réponses",
+    ),
 )
 
 QCM_CHAPTER_KEY = "qcm"
@@ -71,7 +81,7 @@ QCM_CHAPTER_KEY = "qcm"
 for _module in (boucles, conditions, chaines, tableaux, recursif,
                 arguments, linux_fichiers, linux_filtres, linux_droits,
                 linux_shell, reseau_masques, docker_bases, docker_actions,
-                qcm_docker):
+                qcm_docker, ie3514_s4):
     register(_module.PATTERNS)
 
 # Modules importés actuellement chargés : clé -> Module. Reconstruits par
