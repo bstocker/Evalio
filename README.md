@@ -364,7 +364,7 @@ Le QR code est dessiné dans le navigateur de l'enseignant par `qrcode-generator
 
 La page **Demandes d'exercices** de l'espace enseignant fait écrire des exercices à partir de vos documents de cours. Vous choisissez le nombre d'exercices, leur nature (compléter, prédire, trouver le bug, QCM) et leur rangement (un chapitre existant ou un nouveau), vous déposez vos documents (PDF, Word, PowerPoint, images, texte, code…) et vous envoyez.
 
-L'application n'écrit rien elle-même. Elle ouvre une **issue** sur votre dépôt GitHub ; une Action (`.github/workflows/evalio-generation.yml`) y répond : elle télécharge les documents, laisse **Claude Code** écrire le module comme les autres, vérifier les sorties en exécutant le code, lancer les tests, puis ouvrir une **pull request**. Les exercices n'arrivent en production que lorsque vous fusionnez cette PR : le déploiement habituel prend alors le relais.
+L'application n'écrit rien elle-même. Elle ouvre une **issue** sur votre dépôt GitHub ; une Action (`.github/workflows/evalio-generation.yml`) y répond : elle télécharge les documents et laisse **Claude Code** écrire le module comme les autres, vérifier les sorties en exécutant le code et lancer les tests. Claude ne publie rien lui-même : il tourne avec un jeton en lecture seule. Un second job, sans Claude, vérifie que son travail ne touche ni aux workflows ni à la configuration, relance les tests, puis ouvre la **pull request**. Les exercices n'arrivent en production que lorsque vous fusionnez cette PR : le déploiement habituel prend alors le relais.
 
 ```mermaid
 flowchart LR
@@ -385,9 +385,9 @@ La fonctionnalité est facultative : sans les réglages ci-dessous, la page expl
    - **ANTHROPIC_API_KEY** : votre clé API Anthropic, utilisée par l'Action seule.
    - **ATELIER_DOCS_KEY** : une chaîne aléatoire de 32 caractères au moins (`python3 -c "import secrets; print(secrets.token_urlsafe(32))"`).
    - **ATELIER_GITHUB_TOKEN** : un *fine-grained personal access token* (*Settings* de votre compte → *Developer settings*), limité **à ce seul dépôt**, avec la seule permission **Issues : Read and write**. L'application s'en sert pour ouvrir l'issue ; c'est parce que l'issue est ouverte en votre nom que l'Action accepte de la traiter.
-2. **L'application GitHub de Claude** installée sur le dépôt : le plus simple est de lancer `/install-github-app` depuis Claude Code.
+2. L'application GitHub de Claude n'est pas nécessaire : l'Action passe par le jeton du workflow, dont les droits sont bornés job par job.
 3. Dans *Settings → Actions → General*, cochez **Allow GitHub Actions to create and approve pull requests** : sans cela, l'Action ne peut pas ouvrir la PR.
-4. Recommandé : une règle de protection sur `main` qui impose une pull request. La relecture humaine est le dernier rempart, y compris contre un document piégé.
+4. Recommandé : une règle de protection sur `main` qui impose une pull request, **au moins une approbation** et le statut **Tests** (`.github/workflows/tests.yml`). La relecture humaine est le dernier rempart, y compris contre un document piégé.
 5. Poussez un commit : le déploiement écrit `ATELIER_GITHUB_TOKEN`, `ATELIER_DOCS_KEY` et le nom du dépôt dans le `.env` du site.
 
 Le compte gratuit de PythonAnywhere n'autorise les connexions sortantes que vers une liste de sites : l'application n'en a besoin que vers `api.github.com`. Claude, lui, tourne dans l'Action, pas sur PythonAnywhere.

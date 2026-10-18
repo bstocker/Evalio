@@ -16,8 +16,46 @@ import urllib.parse
 
 from markupsafe import escape
 
-from atelier import (create_app, db, load_env_file, exercises as ex,
-                     generation, qcm, scoring, student)
+from flask.testing import FlaskClient
+
+from atelier import (create_app as _create_app, db, load_env_file,
+                     exercises as ex, generation, qcm, scoring, student)
+
+
+class Client(FlaskClient):
+    """Client de test qui parle avec les identifiants du catalogue.
+
+    Le serveur ne montre a l'eleve que des identifiants d'option opaques
+    (cf. `engine.public_id`). Les tests, eux, raisonnent sur le catalogue :
+    `{"stars": "c"}`. Ce client traduit au vol ces identifiants vers ceux de
+    la copie connectee ; une valeur qui n'en est pas un passe telle quelle.
+    """
+
+    def post(self, url, *args, **kwargs):
+        match = re.fullmatch(r"/api/task/([^/]+)/check", url)
+        body = kwargs.get("json")
+        if (match and isinstance(body, dict)
+                and isinstance(body.get("selection"), dict)
+                and match.group(1) in ex.PATTERNS):
+            key = match.group(1)
+            with self.session_transaction() as sess:
+                token = sess.get(student.TOKEN_KEY)
+            secret = self.application.config["SECRET_KEY"]
+            blanks = ex.PATTERNS[key].blanks
+            selection = {}
+            for blank_id, value in body["selection"].items():
+                ids = {o.id for o in blanks.get(blank_id, ("", ()))[1]}
+                selection[blank_id] = (
+                    ex.public_id(secret, token, key, blank_id, value)
+                    if value in ids else value)
+            kwargs["json"] = dict(body, selection=selection)
+        return super().post(url, *args, **kwargs)
+
+
+def create_app(config=None):
+    app = _create_app(config)
+    app.test_client_class = Client
+    return app
 
 
 def tirages(pattern):
@@ -368,13 +406,50 @@ class AtelierTest(unittest.TestCase):
         self.assertIn("TURING Alan", text)
         self.assertIn("20,00", text)
 
+    def _quiet(self, minutes=5):
+        """Fait comme si toutes les copies s'etaient tues depuis un moment."""
+        conn = sqlite3.connect(self.path)
+        conn.execute("UPDATE student SET last_seen_at = ?",
+                     (db.ago(minutes * 60),))
+        conn.commit()
+        conn.close()
+
     def test_rejoining_recovers_the_same_copy(self):
         _, code = self.make_session(patterns=("carre", "triangle_rect"))
         client, _ = self.join(code)
         self.solve(client, "carre")
+        self._quiet()                          # le premier poste a ete quitte
         again, resp = self.join(code)          # nouveau navigateur, meme identite
         me = again.get("/api/me").get_json()
         self.assertEqual(me["progress"]["solved"], 1)
+
+    def test_an_open_copy_cannot_be_taken_from_another_browser(self):
+        """Connaitre le nom d'un camarade ne suffit pas a prendre sa copie."""
+        _, code = self.make_session(patterns=("carre",))
+        client, _ = self.join(code)
+        intrus, resp = self.join(code)         # meme nom, autre poste
+        self.assertIn("error=", resp.headers["Location"])
+        self.assertEqual(intrus.get("/api/me").status_code, 401)
+        # Le navigateur d'origine, lui, reprend sa copie sans attendre.
+        resp = client.post("/join", data={
+            "first_name": "Ada", "last_name": "Lovelace", "code": code})
+        self.assertTrue(resp.headers["Location"].endswith("/exercice"))
+
+    def test_option_ids_do_not_reveal_the_catalogue(self):
+        """Les identifiants envoyes ne disent ni la lettre ni la position."""
+        _, code = self.make_session(patterns=("carre",))
+        client, _ = self.join(code)
+        task = client.get("/api/task/carre").get_json()
+        catalogue = {o.id for _l, opts in ex.PATTERNS["carre"].blanks.values()
+                     for o in opts}
+        for blank in task["blanks"]:
+            for option in blank["options"]:
+                self.assertNotIn(option["id"], catalogue)
+        # Un identifiant du catalogue envoye tel quel, sans la traduction de
+        # `Client`, ne vaut rien.
+        res = FlaskClient.post(client, "/api/task/carre/check",
+                               json={"selection": dict(ex.PATTERNS["carre"].ref)})
+        self.assertFalse(res.get_json()["complete"])
 
     def test_each_student_gets_its_own_size(self):
         _, code = self.make_session(patterns=("carre",))
@@ -1182,8 +1257,8 @@ class QcmTest(unittest.TestCase):
         self.assertEqual(len(task["blanks"][0]["options"]), 4)
 
         juste = ex.PATTERNS[keys[0]].ref["choix"]
-        faux = [o["id"] for o in task["blanks"][0]["options"]
-                if o["id"] != juste][0]
+        faux = [o.id for o in ex.PATTERNS[keys[0]].blanks["choix"][1]
+                if o.id != juste][0]
         rate = client.post("/api/task/%s/check" % keys[0],
                            json={"selection": {"choix": faux}}).get_json()
         self.assertFalse(rate["ok"])
@@ -1208,7 +1283,7 @@ class QcmTest(unittest.TestCase):
         second = self.app.test_client()
         second.post("/join", data={"first_name": "Grace", "last_name": "Hopper",
                                    "code": code})
-        ordres = [[o["id"] for o in client.get("/api/task/" + key)
+        ordres = [[o["c"] for o in client.get("/api/task/" + key)
                                           .get_json()["blanks"][0]["options"]]
                   for client in (first, second)]
         self.assertNotEqual(ordres[0], ordres[1])
@@ -1363,6 +1438,17 @@ class ExamModeTest(unittest.TestCase):
         return live["students"][0]["solved"]
 
     # -- ce que l'eleve ne doit pas apprendre ------------------------------
+
+    def test_an_exam_attempt_returns_the_output_but_no_verdict(self):
+        """L'eleve voit ce que produit son code ; a lui de le comparer."""
+        key = un_exercice("complete")
+        _, code = self.session_on(patterns=[key])
+        eleve = self.join(code)
+        for right in (True, False):
+            res = self.answer(eleve, key, right=right)
+            self.assertIn("rows", res)
+            for champ in ("ok", "diff", "target"):
+                self.assertNotIn(champ, res)
 
     # Tout ce qui, dans une reponse du serveur, dirait « juste » ou « faux ».
     VERDICTS = ("ok", "first_time", "diff", "target", "note",

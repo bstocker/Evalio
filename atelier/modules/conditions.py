@@ -196,8 +196,8 @@ ENTRE_ORDRE = Pattern(
     lesson=(
         "On ne sait plus lequel de A ou B est le plus petit.",
         "Deux cas possibles, donc deux conditions reliées par `||`.",
-        "Les parenthèses comptent : `&&` lie plus fort que `||`, mais les "
-        "écrire rend l'intention lisible.",
+        "Les parenthèses ne changent rien ici, car `&&` lie plus fort que "
+        "`||`. Mais elles rendent l'intention lisible.",
     ),
     dim=("n", 4, 10),
     tpl="""#include <stdio.h>
@@ -336,7 +336,7 @@ int main(void) {
 
 def _break_cases(p):
     return {"cases": "\n".join(
-        '            case %d:\n                printf("%s\\\\n");' % (i + 1, jour)
+        '            case %d:\n                printf("%s\\n");' % (i + 1, jour)
         for i, jour in enumerate(JOURS[:p["n"]]))}
 
 
