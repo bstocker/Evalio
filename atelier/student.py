@@ -4,8 +4,8 @@ import json
 import random
 import secrets
 
-from flask import (Blueprint, abort, jsonify, redirect, render_template,
-                   request, session, url_for)
+from flask import (Blueprint, abort, current_app, jsonify, redirect,
+                   render_template, request, session, url_for)
 
 from . import exercises as ex
 from . import scoring
@@ -55,6 +55,12 @@ def tasks_of(student_id):
 # l'age a la minute pres.
 SEEN_INTERVAL = 45
 
+# Silence au-dela duquel une copie passe pour quittee, et peut etre reprise
+# depuis un autre poste (cf. `join`). Le sondage tourne a 30 s et `touch`
+# n'ecrit qu'au-dela de SEEN_INTERVAL : une copie ouverte a toujours ete
+# vue il y a moins de 75 s.
+RESUME_DELAY = 120
+
 
 def touch(student_id):
     """Marque la copie comme active, sans reecrire a chaque requete.
@@ -68,6 +74,15 @@ def touch(student_id):
                 WHERE id = ?
                   AND (last_seen_at IS NULL OR last_seen_at < ?)""",
             (now(), student_id, ago(SEEN_INTERVAL)))
+
+
+def opaque_ids(student):
+    """Graine et cle des identifiants d'option vus par cette copie.
+
+    Cf. `engine.public_id` : le client ne voit jamais les identifiants du
+    catalogue, qui diraient ou est la bonne reponse.
+    """
+    return student["token"], current_app.config["SECRET_KEY"]
 
 
 def in_exam(student):
@@ -216,6 +231,19 @@ def join():
         (room["id"], last, first), one=True,
     )
     if existing:
+        # Le meme navigateur reprend sa copie sans condition. Un autre poste
+        # ne la reprend que si elle est restee muette assez longtemps pour
+        # avoir ete quittee : sinon, il suffirait de connaitre le nom d'un
+        # camarade pour repondre a sa place ou remettre sa copie.
+        same_browser = session.get(TOKEN_KEY) == existing["token"]
+        if (not same_browser and not existing["finished_at"]
+                and existing["last_seen_at"]
+                and existing["last_seen_at"] > ago(RESUME_DELAY)):
+            return redirect(url_for(
+                "student.join_form",
+                error="Cette copie est déjà ouverte sur un autre poste. "
+                      "Si c'est la vôtre, fermez-la ou attendez deux "
+                      "minutes, puis réessayez."))
         session[TOKEN_KEY] = existing["token"]
         touch(existing["id"])
         if existing["finished_at"]:
@@ -380,6 +408,7 @@ def api_task(key):
     stored = json.loads(task["selection"])
     exam = in_exam(student)
     solved = bool(task["solved"])
+    opaque = opaque_ids(student)
 
     payload = {
         "key": key,
@@ -412,22 +441,22 @@ def api_task(key):
         # Ni code ni sortie : une question, quatre propositions. L'ordre des
         # propositions est tire par la copie, il differe d'un eleve a l'autre.
         payload["question"] = pattern.brief
-        payload["blanks"] = ex.shuffled_blanks(key, student["token"])
-        payload["selection"] = stored
+        payload["blanks"] = ex.shuffled_blanks(key, *opaque)
+        payload["selection"] = ex.public_selection(key, *opaque, stored)
     elif pattern.mode == "debug":
         # Rien a cacher : l'ecart est sous les yeux, c'est l'expliquer
         # qui fait l'exercice.
         payload["code"] = ex.render_code(key, params)
         payload["target"] = ex.target_rows(key, params)
         payload["actual"] = ex.broken_rows(key, params)
-        payload["blanks"] = ex.shuffled_blanks(key, student["token"])
-        payload["selection"] = stored
+        payload["blanks"] = ex.shuffled_blanks(key, *opaque)
+        payload["selection"] = ex.public_selection(key, *opaque, stored)
     else:
         payload["target"] = ex.target_rows(key, params)
         payload["code"] = ex.render_code(key, params, stored)
         payload["code_template"] = ex.code_template(key, params)
-        payload["blanks"] = ex.shuffled_blanks(key, student["token"])
-        payload["selection"] = stored
+        payload["blanks"] = ex.shuffled_blanks(key, *opaque)
+        payload["selection"] = ex.public_selection(key, *opaque, stored)
 
     return jsonify(payload)
 
@@ -456,9 +485,8 @@ def api_check(key):
         # Meme forme dans les deux modes : un menu unique, des phrases, un
         # retour apres coup. Seul l'intitule du menu et la relance changent.
         blank_id = next(iter(pattern.blanks))
-        raw = (payload.get("selection") or {}).get(blank_id)
-        valid = {o.id for o in pattern.blanks[blank_id][1]}
-        chosen = raw if raw in valid else None
+        chosen = ex.private_selection(
+            key, *opaque_ids(student), payload.get("selection")).get(blank_id)
         if chosen is None:
             touch(student["id"])
             return jsonify({"complete": False, "ok": False,
@@ -488,11 +516,8 @@ def api_check(key):
         ok, diff = ex.compare(produced, target)
         trace, infinite, note = None, False, None
     else:
-        raw = payload.get("selection") or {}
-        valid = {b: {o.id for o in opts}
-                 for b, (_lbl, opts) in pattern.blanks.items()}
-        selection = {b: raw.get(b) for b in pattern.blanks
-                     if raw.get(b) in valid[b]}
+        selection = ex.private_selection(key, *opaque_ids(student),
+                                         payload.get("selection"))
         execute("UPDATE task SET selection = ? WHERE id = ?",
                 (json.dumps(selection), task["id"]))
 

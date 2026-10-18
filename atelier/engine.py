@@ -14,6 +14,8 @@ atelier/exercises.py assemble le catalogue.
 
 from dataclasses import dataclass
 from typing import Callable
+import hashlib
+import hmac
 import random
 import re
 
@@ -532,14 +534,57 @@ def code_template(key, params):
     return code
 
 
-def shuffled_blanks(key, seed):
-    """Menus destines au client : l'ordre des options varie par etudiant."""
+def public_id(secret, seed, key, blank_id, option_id):
+    """Identifiant d'option vu par le client, opaque et propre a la copie.
+
+    Les identifiants du catalogue trahissent la reponse : la bonne option
+    est presque toujours `a`, et `c0..c3` disent la position d'origine d'une
+    proposition de QCM. Le client n'en voit donc qu'une empreinte, signee
+    par la cle de l'application : le jeton de l'eleve, lisible dans son
+    cookie, ne suffit pas a la recalculer.
+    """
+    msg = "%s:%s:%s:%s" % (seed, key, blank_id, option_id)
+    return hmac.new(str(secret).encode(), msg.encode(),
+                    hashlib.sha256).hexdigest()[:12]
+
+
+def shuffled_blanks(key, seed, secret):
+    """Menus destines au client : l'ordre des options varie par etudiant.
+
+    Le melange depend lui aussi de la cle : un eleve qui connait son jeton
+    ne doit pas pouvoir refaire le tirage pour retrouver l'ordre d'origine.
+    """
     pattern = PATTERNS[key]
     out = []
     for blank_id, (label, options) in pattern.blanks.items():
-        items = [{"id": o.id, "c": o.c} for o in options]
-        random.Random("%s:%s:%s" % (seed, key, blank_id)).shuffle(items)
+        items = [{"id": public_id(secret, seed, key, blank_id, o.id), "c": o.c}
+                 for o in options]
+        mix = hmac.new(str(secret).encode(),
+                       ("%s:%s:%s" % (seed, key, blank_id)).encode(),
+                       hashlib.sha256).hexdigest()
+        random.Random(mix).shuffle(items)
         out.append({"id": blank_id, "label": label, "options": items})
+    return out
+
+
+def public_selection(key, seed, secret, selection):
+    """Selection enregistree (identifiants du catalogue) -> vue du client."""
+    blanks = PATTERNS[key].blanks
+    return {b: public_id(secret, seed, key, b, v)
+            for b, v in (selection or {}).items() if b in blanks}
+
+
+def private_selection(key, seed, secret, raw):
+    """Selection envoyee par le client -> identifiants du catalogue.
+
+    Ce qui ne correspond a aucune option est ecarte, comme un menu vide.
+    """
+    out = {}
+    for blank_id, (_label, options) in PATTERNS[key].blanks.items():
+        sent = (raw or {}).get(blank_id)
+        for o in options:
+            if sent == public_id(secret, seed, key, blank_id, o.id):
+                out[blank_id] = o.id
     return out
 
 

@@ -204,7 +204,8 @@ MEME_RESEAU = Pattern(
         "Masque` donne le même résultat pour les deux. Sinon, il faut un "
         "**routeur** entre elles.",
         "Un masque qui ne finit pas sur un octet entier coupe un octet en "
-        "deux : `/26` garde 2 bits du dernier octet, soit `11000000` = 192.",
+        "deux : `/27`, par exemple, garde 3 bits du dernier octet, soit "
+        "`11100000` = 224.",
         "Les valeurs possibles d'un octet de masque sont peu nombreuses : "
         "128, 192, 224, 240, 248, 252, 254, 255. Chacune ajoute un bit à 1.",
     ),
@@ -293,13 +294,14 @@ MASQUE_COUPE = Pattern(
     why="Seul l'octet coupé demande un calcul en binaire ; les autres "
         "valent 255 ou 0.",
     lesson=lecon(
-        "`/20`, c'est 16 bits pour les deux premiers octets, et **4** de "
-        "plus dans le troisième : `11110000` = 240.",
+        "Prenons `/19` : 16 bits pour les deux premiers octets, et **3** de "
+        "plus dans le troisième, soit `11100000` = 224.",
         "Les octets du masque à 255 recopient l'adresse, ceux à 0 "
         "l'effacent. Seul l'octet coupé se calcule, bit à bit.",
-        "Dans l'octet coupé, le réseau avance par pas de `256 - 240 = 16` : "
-        "0, 16, 32, 48… L'adresse du réseau est le multiple de 16 juste en "
-        "dessous, la diffusion le suivant moins un.",
+        "Dans l'octet coupé, le réseau avance par pas de `256 - masque` : "
+        "pour ce `/19`, `256 - 224 = 32`, soit 0, 32, 64… L'adresse du "
+        "réseau est le multiple du pas juste en dessous, la diffusion le "
+        "suivant moins un.",
     ),
     dims=(("g", 0, 5),),
     derive=lambda p: {"ip": COUPEES[p["g"]]},

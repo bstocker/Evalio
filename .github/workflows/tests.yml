@@ -1,0 +1,32 @@
+name: Tests
+
+# La suite et la verification des sorties Linux, sur chaque pull request :
+# que « les tests passent » ne repose sur la parole de personne.
+#
+# Une PR ouverte par le GITHUB_TOKEN (celles du workflow evalio-generation)
+# ne declenche pas ce workflow : ce job-la relance donc les memes tests
+# lui-meme avant d'ouvrir la PR.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Run the tests
+        run: |
+          set -euo pipefail
+          pip install -r requirements.txt
+          python -m unittest test_atelier
+          python outils/verif_linux.py

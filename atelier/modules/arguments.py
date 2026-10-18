@@ -58,7 +58,7 @@ CARRE = Pattern(
         "`argv[0]` contient le nom du programme.",
         "C'est une chaîne de caractères : `\"5\"`, pas `5`.",
         "`atoi` (*ASCII to integer*) la convertit en entier. Sans cela, "
-        "on multiplierait des adresses.",
+        "le code ne compile même pas : on ne multiplie pas des chaînes.",
     ),
     value=("v", 3, 12),
     derive=_carre,
