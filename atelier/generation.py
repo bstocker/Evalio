@@ -13,8 +13,9 @@ demande. L'Action télécharge avec une clé partagée (`ATELIER_DOCS_KEY`),
 connue d'elle et de l'application, jamais écrite dans l'issue.
 
 Les documents ne servent qu'à la construction. Ils sont rangés hors du
-code (`instance/demandes/`), supprimés dès que l'Action a fini, et au
-plus tard `RETENTION_DAYS` jours après le dépôt.
+code (`instance/demandes/`), supprimés dès que l'Action a ouvert sa PR
+(ou rendu son refus), et au plus tard `RETENTION_DAYS` jours après le
+dépôt. Sur un échec, ils restent : on relance l'Action sans rien redéposer.
 """
 
 import io
@@ -213,7 +214,8 @@ def issue_body(row):
     lines += [
         "---",
         "Les documents restent sur le serveur d'Evalio : l'Action "
-        "`evalio-generation` les télécharge, puis les fait supprimer. Ils "
+        "`evalio-generation` les télécharge, puis les fait supprimer une fois "
+        "la pull request ouverte. Ils "
         "sont effacés au plus tard %d jours après le dépôt." % RETENTION_DAYS,
         "",
         # Lu par l'Action pour savoir quels documents télécharger.
