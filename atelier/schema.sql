@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS session (
     patterns    TEXT    NOT NULL,              -- JSON : liste de cles de motifs
     status      TEXT    NOT NULL DEFAULT 'draft',  -- draft | open | closed
     exam_mode   INTEGER NOT NULL DEFAULT 0,       -- 1 : l'eleve ne voit pas sa reussite
+    revision_mode INTEGER NOT NULL DEFAULT 0,     -- 1 : sorties de fenetre libres
     created_by  TEXT    NOT NULL DEFAULT '',      -- compte qui a cree la session
     created_at  TEXT    NOT NULL,
     opened_at   TEXT,
@@ -94,6 +95,24 @@ CREATE TABLE IF NOT EXISTS qcm_question (
     answer      INTEGER NOT NULL,            -- indice de la bonne, de 0 a 3
     level       INTEGER NOT NULL DEFAULT 2,
     explanation TEXT    NOT NULL DEFAULT ''
+);
+
+-- Sections du chapitre QCM (cf. atelier/sections.py) : des rayons crees par
+-- l'enseignant, ou il range ses QCM par glisser-deposer. Un module absent
+-- de qcm_placement est « sans section ». La cle de module vaut pour les
+-- modules importes comme pour ceux livres avec l'application.
+CREATE TABLE IF NOT EXISTS qcm_section (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    title       TEXT    NOT NULL,
+    position    INTEGER NOT NULL DEFAULT 0,
+    created_by  TEXT    NOT NULL DEFAULT '',
+    created_at  TEXT    NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS qcm_placement (
+    module_key  TEXT    PRIMARY KEY,
+    section_id  INTEGER NOT NULL REFERENCES qcm_section(id) ON DELETE CASCADE,
+    position    INTEGER NOT NULL DEFAULT 0
 );
 
 -- Modules livres avec l'application que l'enseignant a retires du

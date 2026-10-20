@@ -27,7 +27,8 @@ def current_student():
         return None
     return query(
         """SELECT s.*, x.status AS session_status, x.title AS session_title,
-                  x.code AS session_code, x.exam_mode AS session_exam
+                  x.code AS session_code, x.exam_mode AS session_exam,
+                  x.revision_mode AS session_revision
              FROM student s JOIN session x ON x.id = s.session_id
             WHERE s.token = ?""",
         (token,), one=True,
@@ -97,6 +98,17 @@ def in_exam(student):
     note sont enregistres et calcules comme d'habitude.
     """
     return bool(student["session_exam"])
+
+
+def in_revision(student):
+    """La session de cette copie est-elle en mode revision ?
+
+    En revision, l'eleve a le droit d'aller relire son cours : la page ne
+    passe pas en plein ecran, ne surveille pas la fenetre, et le serveur
+    ignore toute sortie qu'on lui signalerait. Les essais manques, eux,
+    comptent comme d'habitude.
+    """
+    return bool(student["session_revision"])
 
 
 def forget_success(task_id):
@@ -294,6 +306,7 @@ def exercise_page():
         "exercise.html",
         student=student,
         exam=in_exam(student),
+        revision=in_revision(student),
         return_delay=scoring.RETURN_DELAY_SECONDS,
     )
 
@@ -624,7 +637,8 @@ def api_check(key):
 def api_incident():
     """Enregistre une sortie de fenetre et renvoie la sanction associee."""
     student = require_student()
-    if student["finished_at"] or student["session_status"] != "open":
+    if (student["finished_at"] or student["session_status"] != "open"
+            or in_revision(student)):
         return jsonify({"ignored": True}), 200
 
     payload = request.get_json(silent=True) or {}

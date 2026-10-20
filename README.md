@@ -122,7 +122,7 @@ Trois conséquences à connaître :
 4. Créez une session : donnez-lui un intitulé et cochez les exercices. **Le formulaire arrive entièrement décoché** : une épreuve se compose, elle ne se subit pas. Les exercices sont **groupés par chapitre, module puis niveau**, avec un bouton pour cocher un chapitre, un module ou un niveau entier. Un compteur indique combien de points vaut chaque exercice retenu. Les exercices de diagnostic affichent ici le nom de leur défaut, que l'élève ne voit pas.
    Chapitres et modules **se replient** : le catalogue se parcourt sans dérouler une centaine d'intitulés, et chaque en-tête replié affiche le compte de ses exercices cochés. Les plis suivent l'enseignant d'une visite à l'autre.
    Un clic sur le **titre d'un exercice** ouvre sa fiche : voir plus bas.
-   À côté de l'intitulé, la case **Mode examen** décide de ce que l'élève verra de ses résultats : voir plus bas.
+   À côté de l'intitulé, la case **Mode examen** décide de ce que l'élève verra de ses résultats, et la case **Révision** le laisse relire son cours sans pénalité de sortie : voir plus bas.
 5. Cliquez sur **Lancer la session**.
 6. Copiez le **lien à transmettre** et envoyez-le à vos étudiants. Le code y est déjà : ils n'ont que leur nom et leur prénom à saisir. Le code reste affiché à côté si vous préférez le dicter.
 7. Suivez leurs réponses en direct sur la même page.
@@ -295,6 +295,8 @@ Le chapitre est livré avec **« Docker : les bases »** (15 questions), décrit
 
 **Importer un QCM.** Sur `/admin/`, carte **Importer un QCM** : un intitulé, un résumé facultatif, un fichier `.xlsx`. Le sous-module apparaît aussitôt sous le chapitre QCM du formulaire de composition. Un QCM utilisé par une session ne peut pas être supprimé — cela viderait les copies qui le citent.
 
+**Ranger ses QCM en sections.** En tête du chapitre QCM, un champ crée une section (« Docker », « Partiel de janvier »…). Chaque QCM porte alors une poignée ⠿ : on le **glisse** par son en-tête et on le lâche dans une section, à la place voulue. Au clavier ou sur tablette, où le glisser-déposer ne marche pas, la liste **Section** du corps du module fait la même chose. Une section se replie, se coche d'un coup (**Cocher cette section**), se renomme et se supprime : ses QCM ne sont pas supprimés, ils reviennent sous **Sans section**. Le rangement ne sert qu'à la composition — il ne touche ni aux copies ni au barème — et il est commun à tous les comptes, comme le catalogue. Il vit dans les tables `qcm_section` et `qcm_placement` (cf. `atelier/sections.py`).
+
 #### Structure du fichier Excel
 
 Première feuille du classeur. La **première ligne porte les intitulés**, chaque ligne suivante une question. Les intitulés sont reconnus **sans tenir compte de la casse ni des accents**, et **l'ordre des colonnes est libre**.
@@ -465,9 +467,15 @@ En entraînement, rien de tout cela ne change : un exercice trouvé reste trouv�
 
 Côté suivi direct, la colonne **Essais manqués** continue de les compter — c'est une information utile sur la façon dont l'élève a cherché — mais la colonne **Points perdus** reste à zéro. Les deux ne se contredisent pas : les essais ont eu lieu, ils n'ont rien coûté.
 
+### Mode révision
+
+La case **Révision**, à la création d'une session, sert aux séances où l'élève **a le droit de relire son cours** : la page ne passe pas en plein écran, la fenêtre n'est pas surveillée, et le serveur ignore toute sortie qu'on lui signalerait. Aucune pénalité de sortie ne peut donc tomber. Le reste ne change pas : **les essais manqués coûtent comme d'habitude**, et la note est calculée de la même façon.
+
+L'élève en est prévenu sur la page d'inscription et avant de commencer. Une pastille **révision** signale le régime sur la page de la session, dans la liste des sessions en cours et dans l'historique. La case se combine avec **Mode examen** : l'élève consulte son cours sans savoir si ses réponses sont justes.
+
 ### Surveillance de la fenêtre
 
-L'épreuve s'ouvre en plein écran. Une « sortie » est tout passage hors de l'état surveillé : changement d'onglet, sortie du plein écran, ou perte du premier plan. À chaque sortie, un popup s'ouvre avec un décompte de 3 secondes.
+En dehors du mode révision, l'épreuve s'ouvre en plein écran. Une « sortie » est tout passage hors de l'état surveillé : changement d'onglet, sortie du plein écran, ou perte du premier plan. À chaque sortie, un popup s'ouvre avec un décompte de 3 secondes.
 
 | Sortie | Conséquence |
 | --- | --- |
@@ -681,6 +689,10 @@ Les **tables** nouvelles, elles, n'ont besoin de rien : `CREATE TABLE IF NOT EXI
 | `/admin/qcm` | enseignant | Importer un classeur Excel (POST) |
 | `/admin/qcm/modele.xlsx` | enseignant | Le modèle à remplir, rempli du QCM Docker |
 | `/admin/qcm/<clé>/delete` | enseignant | Retirer un QCM importé (POST) |
+| `/admin/qcm/sections` | enseignant | Créer une section du chapitre QCM (POST) |
+| `/admin/qcm/sections/<id>/rename` | enseignant | Renommer une section (POST) |
+| `/admin/qcm/sections/<id>/delete` | enseignant | Supprimer une section ; ses QCM reviennent sous « Sans section » (POST) |
+| `/admin/api/qcm/sections/place` | enseignant | Glisser-déposer : l'ordre complet d'une section (POST JSON) |
 | `/admin/historique` | enseignant | Sessions closes, moyennes, export |
 | `/admin/demandes` | enseignant | Demander des exercices, suivre les demandes envoyées |
 | `/demandes/<id>/documents.zip` | **clé partagée** | Documents d'une demande, pour l'Action |
@@ -709,6 +721,7 @@ atelier/
   engine.py             Socle du moteur : structures, fabriques, correction
   exercises.py          Catalogue : chapitres, modules, registre
   qcm.py                Chapitre QCM : import Excel, modèle, rechargement
+  sections.py           Chapitre QCM : sections de l'enseignant, rangement des QCM
   generation.py         Demandes d'exercices : issue GitHub, documents éphémères
   roster.py             Listes de classe : QR code, inscriptions, export Excel
   modules/              Un fichier par module d'exercices
@@ -731,6 +744,7 @@ atelier/
     js/proctor.js       Surveillance de la fenêtre
     js/exercise.js      Page d'exercice
     js/admin_compose.js Composition d'une session : plis et sélections
+    js/admin_sections.js Chapitre QCM : glisser-déposer des QCM entre sections
     js/admin_preview.js Fiche d'un exercice, côté enseignant
     js/admin_live.js    Suivi direct (interrogation toutes les 5 s)
     js/admin_roster.js  Liste de classe : QR code, inscrits

@@ -4,8 +4,85 @@
 {% block main_class %}wrap wide{% endblock %}
 {% block topbar %}{% include "_admin_nav.html" %}{% endblock %}
 {% block content %}
-{# Un chapitre du catalogue, plie : ses modules, puis leurs niveaux. #}
-{% macro chapter_fold(chapter, modules) %}
+{# Un module du catalogue, plie : ses niveaux, puis leurs exercices.
+   `movable` (liste des sections) le rend deplacable : chapitre QCM. #}
+{% macro module_fold(module, niveaux, movable=None, current=None) %}
+<details class="module" data-module="{{ module.key }}">
+  <summary class="module-head"{% if movable is not none %} draggable="true"{% endif %}>
+    <h3 class="module-title">
+      {% if movable is not none %}<span class="drag-handle" aria-hidden="true" title="Glisser vers une section">⠿</span>{% endif %}
+      {{ module.title }}
+      <span class="level-badge lvl{{ module.level }}"
+            title="Niveau du module : {{ levels[module.level] }}">
+        <span class="level-dots" aria-hidden="true">{{ '●' * module.level }}{{ '○' * (4 - module.level) }}</span>
+        {{ levels[module.level] }}
+      </span>
+    </h3>
+    <span class="hint">{{ module.summary }}</span>
+    <span class="head-tools">
+      <span class="pick-count" data-count></span>
+      <button type="button" class="ghost" data-pick="module">Cocher ce module</button>
+      <!-- Hors du formulaire de composition, qui ne peut pas en
+           contenir un autre : le bouton vise le sien par form=. -->
+      <button type="submit" class="ghost danger-text"
+              form="retrait-{{ module.key }}" data-delete
+              title="Retirer ce sous-module du catalogue">Supprimer</button>
+    </span>
+  </summary>
+
+  {% if movable %}
+  <!-- Pour qui ne peut pas glisser (clavier, ecran tactile). Hors du
+       <summary>, qui se replierait au clic ; sans nom, le formulaire de
+       composition ne l'envoie pas. -->
+  <label class="move-to">Section
+    <select data-move>
+      <option value="" {{ 'selected' if not current }}>Sans section</option>
+      {% for s in movable %}<option value="{{ s['id'] }}" {{ 'selected' if current and current['id'] == s['id'] }}>{{ s['title'] }}</option>{% endfor %}
+    </select>
+  </label>
+  {% endif %}
+
+  {% for level, label, motifs in niveaux %}
+  <div class="level-group" data-level="{{ level }}">
+    <div class="level-head">
+      <span class="level-badge lvl{{ level }}">
+        <span class="level-dots" aria-hidden="true">{{ '●' * level }}{{ '○' * (4 - level) }}</span>
+        {{ label }}
+      </span>
+      <button type="button" class="ghost" data-pick="level">Cocher ce niveau</button>
+    </div>
+    <div class="checks">
+      {% for p in motifs %}
+      <div class="check">
+        <!-- Le titre est un bouton, donc hors du <label> : la case
+             reprend son nom et son intitule par aria-labelledby. -->
+        <input type="checkbox" id="pick-{{ p.key }}" name="patterns" value="{{ p.key }}"
+               aria-labelledby="nom-{{ p.key }} brief-{{ p.key }}">
+        <span class="check-body">
+          <span class="check-title">
+            <button type="button" class="exo-title" id="nom-{{ p.key }}"
+                    data-detail="{{ p.key }}" aria-haspopup="dialog"
+                    title="Voir les attendus de l'exercice">{{ p.name }}</button>
+            {% if p.mode == 'predict' %}<span class="tag">prédire</span>{% endif %}
+            {% if p.mode == 'debug' %}<span class="tag">diagnostic</span>{% endif %}
+            {% if p.trace %}<span class="tag">pas à pas</span>{% endif %}
+          </span>
+          <label class="check-brief" id="brief-{{ p.key }}" for="pick-{{ p.key }}">
+            <em>{{ p.brief }}</em>
+            {% if p.teacher_note %}<em class="teacher-note">{{ p.teacher_note }}</em>{% endif %}
+          </label>
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</details>
+{% endmacro %}
+
+{# Un chapitre du catalogue, plie : ses modules, puis leurs niveaux. Le
+   chapitre QCM passe `groups` : ses modules s'y rangent par section. #}
+{% macro chapter_fold(chapter, modules, groups=None) %}
       <details class="chapter" data-chapter="{{ chapter.key }}" open>
         <summary class="chapter-head">
           <h2 class="chapter-title">{{ chapter.title }}</h2>
@@ -16,66 +93,49 @@
           </span>
         </summary>
 
-        {% for module, niveaux in modules %}
-        <details class="module" data-module="{{ module.key }}">
-          <summary class="module-head">
-            <h3 class="module-title">
-              {{ module.title }}
-              <span class="level-badge lvl{{ module.level }}"
-                    title="Niveau du module : {{ levels[module.level] }}">
-                <span class="level-dots" aria-hidden="true">{{ '●' * module.level }}{{ '○' * (4 - module.level) }}</span>
-                {{ levels[module.level] }}
-              </span>
-            </h3>
-            <span class="hint">{{ module.summary }}</span>
+        {% if groups is none %}
+        {% for module, niveaux in modules %}{{ module_fold(module, niveaux) }}{% endfor %}
+        {% else %}
+        {% set all_sections = groups|map(attribute=0)|select|list %}
+        <div class="section-new">
+          <!-- Rattaches par form= au formulaire de creation, hors de celui
+               de la composition : un formulaire n'en contient pas d'autre. -->
+          <input name="title" form="qcm-section-new" maxlength="80"
+                 placeholder="Nouvelle section, par exemple « Partiel de janvier »"
+                 aria-label="Nom de la nouvelle section" required>
+          <button type="submit" class="ghost" form="qcm-section-new">Créer la section</button>
+          <span class="hint">Glissez ensuite vos QCM d'une section à l'autre par leur poignée ⠿.</span>
+        </div>
+        {% for section, members in groups %}
+        {% if section %}
+        <details class="qcm-group" data-section="{{ section['id'] }}" open>
+          <summary class="group-head">
+            <h3 class="group-title">{{ section['title'] }}</h3>
             <span class="head-tools">
               <span class="pick-count" data-count></span>
-              <button type="button" class="ghost" data-pick="module">Cocher ce module</button>
-              <!-- Hors du formulaire de composition, qui ne peut pas en
-                   contenir un autre : le bouton vise le sien par form=. -->
-              <button type="submit" class="ghost danger-text"
-                      form="retrait-{{ module.key }}" data-delete
-                      title="Retirer ce sous-module du catalogue">Supprimer</button>
+              <button type="button" class="ghost" data-pick="group">Cocher cette section</button>
+              <button type="button" class="ghost" data-rename="{{ section['id'] }}"
+                      data-title="{{ section['title'] }}">Renommer</button>
+              <button type="submit" class="ghost danger-text" data-delete
+                      form="section-del-{{ section['id'] }}">Supprimer la section</button>
             </span>
           </summary>
-
-          {% for level, label, motifs in niveaux %}
-          <div class="level-group" data-level="{{ level }}">
-            <div class="level-head">
-              <span class="level-badge lvl{{ level }}">
-                <span class="level-dots" aria-hidden="true">{{ '●' * level }}{{ '○' * (4 - level) }}</span>
-                {{ label }}
-              </span>
-              <button type="button" class="ghost" data-pick="level">Cocher ce niveau</button>
-            </div>
-            <div class="checks">
-              {% for p in motifs %}
-              <div class="check">
-                <!-- Le titre est un bouton, donc hors du <label> : la case
-                     reprend son nom et son intitule par aria-labelledby. -->
-                <input type="checkbox" id="pick-{{ p.key }}" name="patterns" value="{{ p.key }}"
-                       aria-labelledby="nom-{{ p.key }} brief-{{ p.key }}">
-                <span class="check-body">
-                  <span class="check-title">
-                    <button type="button" class="exo-title" id="nom-{{ p.key }}"
-                            data-detail="{{ p.key }}" aria-haspopup="dialog"
-                            title="Voir les attendus de l'exercice">{{ p.name }}</button>
-                    {% if p.mode == 'predict' %}<span class="tag">prédire</span>{% endif %}
-                    {% if p.mode == 'debug' %}<span class="tag">diagnostic</span>{% endif %}
-                    {% if p.trace %}<span class="tag">pas à pas</span>{% endif %}
-                  </span>
-                  <label class="check-brief" id="brief-{{ p.key }}" for="pick-{{ p.key }}">
-                    <em>{{ p.brief }}</em>
-                    {% if p.teacher_note %}<em class="teacher-note">{{ p.teacher_note }}</em>{% endif %}
-                  </label>
-                </span>
-              </div>
-              {% endfor %}
-            </div>
+          <div class="drop-zone" data-section="{{ section['id'] }}">
+            {% for module, niveaux in members %}{{ module_fold(module, niveaux, all_sections, section) }}{% endfor %}
+            <p class="drop-hint">Section vide&nbsp;: glissez-y un QCM.</p>
           </div>
-          {% endfor %}
         </details>
+        {% else %}
+        <div class="qcm-group loose">
+          {% if all_sections %}<h3 class="group-title muted">Sans section</h3>{% endif %}
+          <div class="drop-zone" data-section="">
+            {% for module, niveaux in members %}{{ module_fold(module, niveaux, all_sections if all_sections else none, None) }}{% endfor %}
+            {% if all_sections %}<p class="drop-hint">Tous les QCM sont rangés.</p>{% endif %}
+          </div>
+        </div>
+        {% endif %}
         {% endfor %}
+        {% endif %}
       </details>
 {% endmacro %}
 
@@ -141,6 +201,15 @@
              porte à la remise.</span>
         </span>
       </label>
+      <label class="switch" for="revision-mode">
+        <input type="checkbox" name="revision_mode" id="revision-mode" value="1">
+        <span>
+          <strong>Révision</strong>
+          <span class="hint">L'étudiant peut quitter la fenêtre pour relire son
+             cours&nbsp;: pas de plein écran, et aucune pénalité de sortie.
+             Les essais manqués comptent comme d'habitude.</span>
+        </span>
+      </label>
     </div>
     <button type="submit" class="primary">Créer la session</button>
     <fieldset>
@@ -166,7 +235,7 @@
       </details>
       {% endif %}
 
-      {% for chapter, modules in catalogue if chapter.key == qcm_key %}{{ chapter_fold(chapter, modules) }}{% endfor %}
+      {% for chapter, modules in catalogue if chapter.key == qcm_key %}{{ chapter_fold(chapter, modules, qcm_groups) }}{% endfor %}
     </fieldset>
   </form>
 
@@ -181,6 +250,18 @@
         data-confirm="Retirer « {{ module.title }} » du catalogue ? Les sessions qui l'utilisent ne sont pas touchées, et le module pourra être rétabli."></form>
   {% endif %}
   {% endfor %}{% endfor %}
+
+  <form method="post" id="qcm-section-new" hidden
+        action="{{ url_for('admin.create_section') }}"></form>
+  {% for section, members in qcm_groups if section %}
+  <form method="post" id="section-del-{{ section['id'] }}" hidden
+        action="{{ url_for('admin.delete_section', section_id=section['id']) }}"
+        data-confirm="Supprimer la section « {{ section['title'] }} » ? Ses {{ members|length }} QCM ne sont pas supprimés : ils reviennent sous « Sans section »."></form>
+  <form method="post" id="section-ren-{{ section['id'] }}" hidden
+        action="{{ url_for('admin.rename_section', section_id=section['id']) }}">
+    <input type="hidden" name="title">
+  </form>
+  {% endfor %}
 
   {% if hidden %}
   <details class="qcm-format">
@@ -218,7 +299,8 @@
       <tr>
         <td class="mono strong">{{ s['code'] }}</td>
         <td>{{ s['title'] }}
-            {% if s['exam_mode'] %}<span class="pill exam" title="L'étudiant ne voit pas ses résultats">examen</span>{% endif %}</td>
+            {% if s['exam_mode'] %}<span class="pill exam" title="L'étudiant ne voit pas ses résultats">examen</span>{% endif %}
+            {% if s['revision_mode'] %}<span class="pill exam" title="Sorties de fenêtre sans pénalité">révision</span>{% endif %}</td>
         <td><span class="pill {{ 'ok' if s['status'] == 'open' else '' }}">{{ 'ouverte' if s['status'] == 'open' else 'brouillon' }}</span></td>
         <td>{{ s['students'] }}</td>
         <td class="muted">{{ s['created_by'] or '—' }}</td>
@@ -262,4 +344,5 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/admin_compose.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin_preview.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_sections.js') }}"></script>
 {% endblock %}

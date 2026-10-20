@@ -48,6 +48,7 @@ ADDED_COLUMNS = (
     ("task", "wrong_attempts", "INTEGER NOT NULL DEFAULT 0"),
     ("session", "exam_mode", "INTEGER NOT NULL DEFAULT 0"),
     ("session", "created_by", "TEXT NOT NULL DEFAULT ''"),
+    ("session", "revision_mode", "INTEGER NOT NULL DEFAULT 0"),
 )
 
 

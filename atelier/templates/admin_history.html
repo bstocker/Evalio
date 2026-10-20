@@ -18,7 +18,8 @@
         <tr>
           <td class="mono">{{ (s['closed_at'] or '')[:16]|replace('T', ' ') }}</td>
           <td>{{ s['title'] }}
-              {% if s['exam_mode'] %}<span class="pill exam" title="L'étudiant n'a pas vu ses résultats">examen</span>{% endif %}</td>
+              {% if s['exam_mode'] %}<span class="pill exam" title="L'étudiant n'a pas vu ses résultats">examen</span>{% endif %}
+              {% if s['revision_mode'] %}<span class="pill exam" title="Sorties de fenêtre sans pénalité">révision</span>{% endif %}</td>
           <td class="mono">{{ s['code'] }}</td>
           <td class="muted">{{ s['created_by'] or '—' }}</td>
           <td>{{ s['students'] }}</td>
