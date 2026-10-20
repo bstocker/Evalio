@@ -11,6 +11,9 @@
         {% if room['exam_mode'] %}
         <span class="pill exam" title="L'étudiant ne voit pas ses résultats">mode examen</span>
         {% endif %}
+        {% if room['revision_mode'] %}
+        <span class="pill exam" title="Sorties de fenêtre sans pénalité">révision</span>
+        {% endif %}
       </div>
       <p class="muted">
         <strong>{{ modules|map(attribute='title')|join(' · ') }}</strong>
@@ -55,6 +58,15 @@
      porte à la remise</strong> et non sur le fait d'avoir trouvé une fois&nbsp;:
      un exercice réussi puis modifié n'est plus acquis. Les essais manqués
      restent comptés dans la colonne du suivi, pour information.</p>
+  {% endif %}
+
+  {% if room['revision_mode'] %}
+  <p class="notice">
+    <strong>Révision.</strong> L'étudiant peut quitter la fenêtre pour relire
+    son cours&nbsp;: la page ne passe pas en plein écran, et ses sorties ne
+    sont ni comptées ni pénalisées. Les essais manqués, eux, comptent comme
+    d'habitude.
+  </p>
   {% endif %}
 
   {% if room['status'] == 'draft' %}

@@ -13,8 +13,14 @@
 <!-- Écran d'accueil : le plein écran exige un geste utilisateur. -->
 <div class="card card-narrow" id="gate">
   <h1>Prêt à commencer&nbsp;?</h1>
+  {% if revision %}
+  <p class="notice"><strong>Mode révision.</strong> Vous pouvez quitter la
+     fenêtre pour relire votre cours ou vos notes&nbsp;: aucune sortie n'est
+     comptée, et aucune ne vous coûte de point.</p>
+  {% else %}
   <p class="muted">L'épreuve s'ouvre en plein écran. Restez dans la fenêtre
      jusqu'à la remise de votre copie.</p>
+  {% endif %}
   {% if exam %}
   <p class="hint">Les exercices valent tous le même nombre de points.
      Vous pouvez revenir sur une réponse autant de fois que vous voulez&nbsp;:
@@ -23,14 +29,14 @@
   <p class="notice"><strong>Mode examen.</strong> Vos réponses sont
      enregistrées, mais l'application ne vous dira pas si elles sont justes,
      et votre note ne s'affichera pas&nbsp;: la liste des exercices indique
-     seulement ceux que vous avez traités. Vos sorties de fenêtre et leurs
-     pénalités, elles, restent affichées.</p>
+     seulement ceux que vous avez traités.{% if not revision %} Vos sorties
+     de fenêtre et leurs pénalités, elles, restent affichées.{% endif %}</p>
   {% else %}
   <p class="hint">Les exercices valent tous le même nombre de points. Chaque
      essai manqué en retire une part&nbsp;: les avoir tous essayés ramène
      l'exercice à zéro. Lisez avant de valider.</p>
   {% endif %}
-  <button type="button" class="primary" id="start-btn">Passer en plein écran et commencer</button>
+  <button type="button" class="primary" id="start-btn">{{ 'Commencer' if revision else 'Passer en plein écran et commencer' }}</button>
   <p class="hint" id="gate-hint"></p>
 </div>
 
@@ -162,7 +168,10 @@
     returnDelay: {{ return_delay }},
     // Mode examen : la page ne montre ni note ni verdict. Le serveur ne les
     // envoie pas non plus — ce drapeau ne fait que l'habillage.
-    exam: {{ 'true' if exam else 'false' }}
+    exam: {{ 'true' if exam else 'false' }},
+    // Mode révision : ni plein écran ni surveillance. Le serveur ignore de
+    // toute façon les sorties qu'on lui signalerait.
+    revision: {{ 'true' if revision else 'false' }}
   };
 </script>
 <script src="{{ url_for('static', filename='js/proctor.js') }}"></script>

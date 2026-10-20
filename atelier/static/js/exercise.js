@@ -54,6 +54,7 @@
   // pas non plus (cf. `in_exam` dans student.py) ; ce drapeau ne commande
   // que l'habillage — les libellés, et la liste du bandeau supérieur.
   var EXAM = !!(window.ATELIER && window.ATELIER.exam);
+  var REVISION = !!(window.ATELIER && window.ATELIER.revision);
 
   var tasks = [];
   var progress = null;     // dernier état renvoyé par le serveur
@@ -659,9 +660,12 @@
 
   el.start.addEventListener("click", function () {
     el.start.disabled = true;
-    window.Proctor.start({
+    // En révision, l'élève peut aller relire son cours : on ne démarre pas
+    // la surveillance, et la page reste dans sa fenêtre.
+    var watch = REVISION ? Promise.resolve(true) : window.Proctor.start({
       onPenalty: function (data) { showProgress(data.progress); }
-    }).then(function (fullscreen) {
+    });
+    watch.then(function (fullscreen) {
       if (!fullscreen) {
         el.gateHint.textContent = "Le plein écran a ete refusé par le "
           + "navigateur : la surveillance se limite au changement d'onglet.";

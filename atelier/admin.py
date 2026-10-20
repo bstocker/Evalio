@@ -13,6 +13,7 @@ from . import accounts
 from . import exercises as ex
 from . import qcm
 from . import scoring
+from . import sections
 from .db import execute, get_db, now, query
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -191,12 +192,17 @@ def dashboard():
     # Module puis niveau : l'enseignant choisit d'abord un sujet, ensuite
     # une difficulte, plutot que de lire dix-huit intitules d'affilee.
     hidden = hidden_modules()
+    catalogue = ex.catalogue(hidden)
+    # Le chapitre QCM se presente par sections, celles de l'enseignant.
+    qcm_modules = next((modules for chapter, modules in catalogue
+                        if chapter.key == ex.QCM_CHAPTER_KEY), [])
     # Import tardif : roster s'appuie sur ce module-ci pour l'authentification.
     from . import roster
     return render_template(
         "admin_dashboard.html", sessions=sessions, rosters=roster.listing(),
-        catalogue=ex.catalogue(hidden), levels=ex.LEVELS,
+        catalogue=catalogue, levels=ex.LEVELS,
         qcm_key=ex.QCM_CHAPTER_KEY,
+        qcm_groups=sections.group(qcm_modules),
         # Un QCM importe se supprime vraiment : sa confirmation le dit.
         imported_keys={row["key"] for row, _questions in qcm.imported()},
         hidden=[{"key": key, "title": ex.MODULE_BY_KEY[key].title,
@@ -300,8 +306,77 @@ def delete_qcm(key):
                      ", ".join(sessions[:3]))))
     if not qcm.delete(key):
         return redirect(url_for("admin.dashboard", error="QCM introuvable."))
+    sections.forget(key)
     qcm.sync(force=True)
     return redirect(url_for("admin.dashboard", ok="QCM supprimé."))
+
+
+# --------------------------------------------------------------------------
+# Chapitre QCM : sections
+# --------------------------------------------------------------------------
+
+@bp.post("/qcm/sections")
+@require_admin
+def create_section():
+    title = sections.clean(request.form.get("title"))
+    if not title:
+        return redirect(url_for("admin.dashboard",
+                                error="Donnez un nom à la section."))
+    sections.create(title, who())
+    return redirect(url_for(
+        "admin.dashboard",
+        ok="Section « %s » créée : glissez-y vos QCM." % title))
+
+
+@bp.post("/qcm/sections/<int:section_id>/rename")
+@require_admin
+def rename_section(section_id):
+    title = sections.clean(request.form.get("title"))
+    if sections.get(section_id) is None or not title:
+        return redirect(url_for("admin.dashboard",
+                                error="Section introuvable ou nom vide."))
+    sections.rename(section_id, title)
+    return redirect(url_for("admin.dashboard",
+                            ok="Section renommée « %s »." % title))
+
+
+@bp.post("/qcm/sections/<int:section_id>/delete")
+@require_admin
+def delete_section(section_id):
+    section = sections.get(section_id)
+    if section is None:
+        return redirect(url_for("admin.dashboard",
+                                error="Section introuvable."))
+    sections.delete(section_id)
+    return redirect(url_for(
+        "admin.dashboard",
+        ok="Section « %s » supprimée : ses QCM sont revenus sous « Sans "
+           "section »." % section["title"]))
+
+
+@bp.post("/api/qcm/sections/place")
+@require_admin
+def place_modules():
+    """Glisser-deposer : l'ordre complet de la section d'arrivee.
+
+    Corps JSON : `{"section": 3, "modules": ["docker_bases", ...]}`, ou
+    `"section": null` pour « Sans section ». Seuls les modules du chapitre
+    QCM se rangent.
+    """
+    payload = request.get_json(silent=True) or {}
+    section_id = payload.get("section")
+    keys = payload.get("modules")
+    if not isinstance(keys, list) or not all(isinstance(k, str) for k in keys):
+        return jsonify({"error": "Liste de modules attendue."}), 400
+    if any(ex.CHAPTER_OF.get(k) is None
+           or ex.CHAPTER_OF[k].key != ex.QCM_CHAPTER_KEY for k in keys):
+        return jsonify({"error": "Seuls les QCM se rangent en sections."}), 400
+    if section_id is not None:
+        if (not isinstance(section_id, int) or isinstance(section_id, bool)
+                or sections.get(section_id) is None):
+            return jsonify({"error": "Section introuvable."}), 404
+    sections.place(section_id, keys)
+    return jsonify({"ok": True})
 
 
 @bp.get("/qcm/modele.xlsx")
@@ -383,10 +458,11 @@ def create_session():
 
     session_id = execute(
         """INSERT INTO session (code, title, patterns, status, exam_mode,
-                                created_by, created_at)
-           VALUES (?, ?, ?, 'draft', ?, ?, ?)""",
+                                revision_mode, created_by, created_at)
+           VALUES (?, ?, ?, 'draft', ?, ?, ?, ?)""",
         (new_code(), title, json.dumps(keys),
-         1 if request.form.get("exam_mode") else 0, who(), now()),
+         1 if request.form.get("exam_mode") else 0,
+         1 if request.form.get("revision_mode") else 0, who(), now()),
     )
     return redirect(url_for("admin.session_view", session_id=session_id))
 

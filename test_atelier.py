@@ -19,7 +19,8 @@ from markupsafe import escape
 from flask.testing import FlaskClient
 
 from atelier import (create_app as _create_app, db, load_env_file,
-                     exercises as ex, generation, qcm, scoring, student)
+                     exercises as ex, generation, qcm, scoring, sections,
+                     student)
 
 
 class Client(FlaskClient):
@@ -1365,6 +1366,135 @@ class QcmTest(unittest.TestCase):
         self.assertIn("git-les-bases", [m.key for m in ex.MODULES])
 
 
+class QcmSectionTest(unittest.TestCase):
+    """Chapitre QCM : les sections de l'enseignant et le rangement des QCM."""
+
+    EN_TETE, QUESTIONS = QcmTest.EN_TETE, QcmTest.QUESTIONS
+    setUp, tearDown = QcmTest.setUp, QcmTest.tearDown
+    workbook, upload = QcmTest.workbook, QcmTest.upload
+
+    def section(self, title):
+        self.admin.post("/admin/qcm/sections", data={"title": title})
+        row = [r for r in self.rows() if r["title"] == title]
+        self.assertEqual(len(row), 1)
+        return row[0]["id"]
+
+    def rows(self):
+        with self.app.app_context():
+            return [dict(r) for r in sections.listing()]
+
+    def place(self, section_id, modules):
+        return self.admin.post("/admin/api/qcm/sections/place",
+                               json={"section": section_id, "modules": modules})
+
+    def grouping(self):
+        """Ce que montre la composition : {section ou None: [modules]}."""
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        qcm_part = html.split('data-chapter="qcm"')[1]
+        out = {}
+        for zone in qcm_part.split('class="drop-zone" data-section="')[1:]:
+            section_id, body = zone.split('"', 1)
+            body = body.split('class="drop-hint"')[0]
+            out[int(section_id) if section_id else None] = [
+                chunk.split('"', 1)[0]
+                for chunk in body.split('<details class="module" data-module="')[1:]]
+        return out
+
+    def test_a_section_is_created_and_shown(self):
+        section_id = self.section("Partiel de janvier")
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertIn("Partiel de janvier", html)
+        self.assertEqual(self.grouping()[section_id], [])
+        self.assertIn("qcm_docker", self.grouping()[None])
+
+    def test_a_nameless_section_is_refused(self):
+        resp = self.admin.post("/admin/qcm/sections", data={"title": "   "})
+        self.assertIn("error=", resp.headers["Location"])
+        self.assertEqual(self.rows(), [])
+
+    def test_modules_are_placed_in_order(self):
+        self.upload()
+        git = [m.key for m in ex.MODULES if m.title == "Git : les bases"][0]
+        section_id = self.section("Outils")
+        self.assertEqual(self.place(section_id, [git, "qcm_docker"]).status_code, 200)
+        self.assertEqual(self.grouping()[section_id], [git, "qcm_docker"])
+        self.assertEqual(self.grouping()[None], [])
+        self.place(section_id, ["qcm_docker", git])
+        self.assertEqual(self.grouping()[section_id], ["qcm_docker", git])
+
+    def test_a_module_moves_from_one_section_to_another(self):
+        first, second = self.section("A"), self.section("B")
+        self.place(first, ["qcm_docker"])
+        self.place(second, ["qcm_docker"])
+        grouping = self.grouping()
+        self.assertEqual(grouping[first], [])
+        self.assertEqual(grouping[second], ["qcm_docker"])
+        self.place(None, ["qcm_docker"])
+        self.assertEqual(self.grouping()[None], ["qcm_docker"])
+
+    def test_deleting_a_section_keeps_its_modules(self):
+        section_id = self.section("Éphémère")
+        self.place(section_id, ["qcm_docker"])
+        self.admin.post("/admin/qcm/sections/%d/delete" % section_id)
+        self.assertEqual(self.rows(), [])
+        self.assertIn("qcm_docker", self.grouping()[None])
+        self.assertIn("qcm_docker", ex.MODULE_BY_KEY)
+
+    def test_a_section_can_be_renamed(self):
+        section_id = self.section("Brouillon")
+        self.admin.post("/admin/qcm/sections/%d/rename" % section_id,
+                        data={"title": "Docker"})
+        self.assertEqual(self.rows()[0]["title"], "Docker")
+
+    def test_only_qcm_modules_are_placed(self):
+        section_id = self.section("Mélange")
+        resp = self.place(section_id, [ex.module_of(un_exercice("complete")).key])
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(self.place(section_id, ["inconnu"]).status_code, 400)
+        self.assertEqual(self.place(999, ["qcm_docker"]).status_code, 404)
+        self.assertEqual(self.place(True, ["qcm_docker"]).status_code, 404)
+        self.assertEqual(self.admin.post("/admin/api/qcm/sections/place",
+                                         json={"section": section_id,
+                                               "modules": "qcm_docker"})
+                         .status_code, 400)
+
+    def test_sections_require_a_teacher(self):
+        anonyme = self.app.test_client()
+        anonyme.post("/admin/qcm/sections", data={"title": "Pirate"})
+        self.assertEqual(self.rows(), [])
+        resp = anonyme.post("/admin/api/qcm/sections/place",
+                            json={"section": None, "modules": ["qcm_docker"]})
+        self.assertIn(resp.status_code, (302, 401, 403))
+
+    def test_a_deleted_import_forgets_its_place(self):
+        self.upload()
+        git = [m.key for m in ex.MODULES if m.title == "Git : les bases"][0]
+        section_id = self.section("Outils")
+        self.place(section_id, [git])
+        self.admin.post("/admin/qcm/%s/delete" % git)
+        with self.app.app_context():
+            from atelier.db import query
+            self.assertIsNone(query(
+                "SELECT 1 FROM qcm_placement WHERE module_key = ?", (git,),
+                one=True))
+
+    def test_handles_appear_once_a_section_exists(self):
+        self.assertNotIn("drag-handle", self.admin.get("/admin/")
+                         .get_data(as_text=True))
+        self.section("Docker")
+        html = self.admin.get("/admin/").get_data(as_text=True)
+        self.assertIn("drag-handle", html)
+        self.assertIn("data-move", html)
+
+    def test_a_session_is_composed_from_a_section(self):
+        section_id = self.section("Docker")
+        self.place(section_id, ["qcm_docker"])
+        key = ex.MODULE_BY_KEY["qcm_docker"].keys[0]
+        resp = self.admin.post("/admin/sessions",
+                               data={"title": "TP", "patterns": [key]})
+        self.assertIn("/admin/sessions/", resp.headers["Location"])
+
+
 class ExamModeTest(unittest.TestCase):
     """Mode examen : l'eleve repond, et n'apprend rien de sa reussite.
 
@@ -1687,6 +1817,111 @@ class ExamModeTest(unittest.TestCase):
         self.assertEqual(progress["score"], 0.0)
 
 
+class RevisionModeTest(unittest.TestCase):
+    """Mode revision : l'eleve peut relire son cours, sans penalite de sortie."""
+
+    def setUp(self):
+        fd, self.path = tempfile.mkstemp(suffix=".sqlite")
+        os.close(fd)
+        self.app = create_app({
+            "TESTING": True, "DATABASE": self.path, "SECRET_KEY": "test",
+            "ADMIN_USER": "prof", "ADMIN_PASSWORD": "secret",
+        })
+        self.admin = self.app.test_client()
+        self.admin.post("/admin/login",
+                        data={"username": "prof", "password": "secret"})
+        self.key = un_exercice("qcm")
+
+    def tearDown(self):
+        for suffix in ("", "-wal", "-shm"):
+            try:
+                os.remove(self.path + suffix)
+            except OSError:
+                pass
+
+    def session_on(self, revision=True, exam=False):
+        data = {"title": "Révisions", "patterns": [self.key]}
+        if revision:
+            data["revision_mode"] = "1"
+        if exam:
+            data["exam_mode"] = "1"
+        resp = self.admin.post("/admin/sessions", data=data)
+        session_id = int(resp.headers["Location"].rstrip("/").split("/")[-1])
+        self.admin.post("/admin/sessions/%d/open" % session_id)
+        page = self.admin.get("/admin/sessions/%d" % session_id)
+        code = page.get_data(as_text=True) \
+                   .split('class="joincode mono">')[1].split("<")[0].strip()
+        return session_id, code
+
+    def join(self, code):
+        client = self.app.test_client()
+        client.post("/join", data={"first_name": "Ada", "last_name": "Lovelace",
+                                   "code": code})
+        return client
+
+    def test_window_exits_cost_nothing(self):
+        session_id, code = self.session_on()
+        eleve = self.join(code)
+        for _ in range(4):
+            res = eleve.post("/api/incident", json={"kind": "blur"}).get_json()
+            self.assertTrue(res["ignored"])
+        progress = eleve.get("/api/me").get_json()["progress"]
+        self.assertEqual(progress["penalty"], 0.0)
+        self.assertEqual(progress["exits"], 0)
+        live = self.admin.get(
+            "/admin/api/sessions/%d/live" % session_id).get_json()
+        self.assertEqual(live["students"][0]["penalty"], 0.0)
+
+    def test_the_page_neither_asks_for_fullscreen_nor_watches(self):
+        _, code = self.session_on()
+        page = self.join(code).get("/exercice").get_data(as_text=True)
+        self.assertIn("Mode révision", page)
+        self.assertIn("revision: true", page)
+        self.assertNotIn("Passer en plein écran", page)
+
+    def test_the_mode_is_announced(self):
+        session_id, code = self.session_on()
+        self.assertIn("Session de révision",
+                      self.app.test_client().get("/s/" + code)
+                          .get_data(as_text=True))
+        self.assertIn(">révision<", self.admin.get(
+            "/admin/sessions/%d" % session_id).get_data(as_text=True))
+        self.assertIn(">révision<", self.admin.get("/admin/")
+                      .get_data(as_text=True))
+
+    def test_wrong_attempts_still_count(self):
+        _, code = self.session_on()
+        eleve = self.join(code)
+        pattern = ex.PATTERNS[self.key]
+        eleve.get("/api/task/" + self.key)
+        blank_id = next(iter(pattern.blanks))
+        faux = [o.id for o in pattern.blanks[blank_id][1]
+                if o.id != pattern.ref[blank_id]][0]
+        eleve.post("/api/task/%s/check" % self.key,
+                   json={"selection": dict(pattern.ref, **{blank_id: faux})})
+        res = eleve.post("/api/task/%s/check" % self.key,
+                         json={"selection": dict(pattern.ref)}).get_json()
+        self.assertTrue(res["ok"])
+        self.assertLess(res["progress"]["score"], 20.0)
+
+    def test_revision_is_off_unless_asked(self):
+        _, code = self.session_on(revision=False)
+        eleve = self.join(code)
+        eleve.post("/api/incident", json={"kind": "blur"})
+        res = eleve.post("/api/incident", json={"kind": "blur"}).get_json()
+        self.assertEqual(res["penalty"], 2.0)
+        page = eleve.get("/exercice").get_data(as_text=True)
+        self.assertIn("Passer en plein écran", page)
+        self.assertIn("revision: false", page)
+
+    def test_revision_and_exam_combine(self):
+        _, code = self.session_on(exam=True)
+        eleve = self.join(code)
+        res = eleve.post("/api/incident", json={"kind": "blur"}).get_json()
+        self.assertTrue(res["ignored"])
+        self.assertTrue(eleve.get("/api/me").get_json()["progress"]["exam"])
+
+
 class AccountsTest(unittest.TestCase):
     """Comptes enseignants : l'administrateur les cree, eux ne peuvent pas."""
 
@@ -1978,6 +2213,7 @@ class MigrationTest(unittest.TestCase):
                     "ADMIN_PASSWORD": "secret"})
         self.assertIn("exam_mode", self._columns("session"))
         self.assertIn("created_by", self._columns("session"))
+        self.assertIn("revision_mode", self._columns("session"))
 
         import sqlite3
         conn = sqlite3.connect(self.path)

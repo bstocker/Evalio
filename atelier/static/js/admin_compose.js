@@ -13,7 +13,7 @@
   var boxes = Array.prototype.slice.call(
     form.querySelectorAll("input[name=patterns]"));
   var groups = Array.prototype.slice.call(
-    form.querySelectorAll("details.chapter, details.module"));
+    form.querySelectorAll("details.chapter, details.qcm-group, details.module"));
   var tally = document.getElementById("tally");
 
   var STORE = "atelier.catalogue.plis";
@@ -31,6 +31,9 @@
   }
 
   function key(group) {
+    if (group.classList.contains("qcm-group")) {
+      return "s:" + group.getAttribute("data-section");
+    }
     return (group.classList.contains("chapter") ? "c:" : "m:")
       + (group.getAttribute("data-chapter") || group.getAttribute("data-module"));
   }
@@ -91,6 +94,7 @@
     event.preventDefault();
     var scope = event.target.closest("." + (pick === "level" ? "level-group"
                                           : pick === "module" ? "module"
+                                          : pick === "group" ? "qcm-group"
                                           : "chapter"));
     var inScope = Array.prototype.slice.call(
       scope.querySelectorAll("input[name=patterns]"));
@@ -101,6 +105,9 @@
   });
 
   boxes.forEach(function (b) { b.addEventListener("change", refresh); });
+  // Un QCM range dans une autre section emporte ses cases : les comptes
+  // des en-tetes changent (cf. admin_sections.js).
+  document.addEventListener("catalogue:moved", refresh);
 
   var state = folded();
   groups.forEach(function (group) {
