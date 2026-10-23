@@ -26,7 +26,7 @@ Les parties et les diapositives sont celles du support de la séance 3
 
 from dataclasses import replace
 
-from ..engine import Module, Option, Pattern, qcm_pattern
+from ..engine import Module, Option, Pattern, one_line_per_blank, qcm_pattern
 from .qcm_docker import _tourner
 
 # Le chapeau demandé par l'enseignant, rappelé en tête de chaque exercice.
@@ -589,8 +589,11 @@ def _question(rang, question, choices, answer, level, explanation, partie):
                    lesson=(INTRO,))
 
 
-PATTERNS = TROUS + tuple(
-    _question(number + 1, *entree) for number, entree in enumerate(QUESTIONS)
+PATTERNS = one_line_per_blank(
+    TROUS + tuple(
+        _question(number + 1, *entree)
+        for number, entree in enumerate(QUESTIONS)
+    )
 )
 
 MODULE = Module(

@@ -293,8 +293,8 @@ Des révisions de langue, une unité par module. **« Unité 1 — Ferien in den
 
 Deux formes, et dans les deux **un indice sur chaque erreur, jamais la réponse** :
 
-- des **phrases à trous** : la cible dit, pour chaque trou, ce que la phrase doit exprimer (« je vais en Suisse »). Un choix juste reproduit la ligne ; un choix faux affiche à sa place ce qui ne va pas (« nach s'emploie avec un nom de pays sans article ; die Schweiz en a un ») ;
-- des **questions** dont chaque proposition fausse porte son indice. C'est un écart voulu avec le QCM Docker, qui laisse les erreurs sans commentaire : ici l'accompagnement a été demandé. Le barème, lui, compte l'essai manqué comme ailleurs.
+- 16 **phrases à trous** : la cible dit, pour chaque trou, ce que la phrase doit exprimer (« je vais en Suisse »). Un choix juste reproduit la ligne ; un choix faux affiche à sa place ce qui ne va pas (« nach s'emploie avec un nom de pays sans article ; die Schweiz en a un ») ;
+- 20 **questions** dont chaque proposition fausse porte son indice. C'est un écart voulu avec le QCM Docker, qui laisse les erreurs sans commentaire : ici l'accompagnement a été demandé. Le barème, lui, compte l'essai manqué comme ailleurs.
 
 `AllemandTest` vérifie que chaque mauvais choix a son indice et qu'aucun indice ne cite la bonne réponse.
 
@@ -659,6 +659,9 @@ Un motif à `r` réponses en a `r − 1` de fausses : les avoir toutes essayées
 | Diagnostic (quatre causes) | 4 | ⅓ de sa valeur | 3 essais manqués |
 | Prédiction (texte libre) | — | ⅓ de sa valeur | 3 essais manqués |
 | Question de QCM | 4 | ⅓ de sa valeur | 3 essais manqués |
+| Fiche de révision : cinq menus de quatre options, une ligne par menu | 16 | 1/15 de sa valeur | 15 essais manqués |
+
+**Les fiches de révision font exception** (chapitres Révisions et Allemand). Chaque menu y a sa propre ligne de sortie : le diff dit quel trou est faux, et l'élève corrige les trous un par un. On y compte donc les réponses possibles comme **la somme des erreurs de chaque menu, plus une** — et non le produit des combinaisons, qui, à cinq menus de quatre options, en ferait 1 024 et rendrait un essai manqué presque gratuit. C'est le champ `per_blank` du motif (cf. `one_line_per_blank` dans `atelier/engine.py`) ; un test vérifie que chaque fiche marquée l'est à raison.
 
 La prédiction n'a pas de réponses énumérables : elle reçoit l'allocation d'un menu à quatre options (`PREDICT_CHOICES`, dans `engine.py`), pour que l'acharnement y coûte comme ailleurs.
 

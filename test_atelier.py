@@ -3194,6 +3194,36 @@ class CatalogueTest(unittest.TestCase):
                 with self.subTest(exercice=key):
                     self.assertEqual(ex.answer_space(key), ex.PREDICT_CHOICES)
 
+    def test_a_fiche_with_one_line_per_menu_adds_its_errors(self):
+        """Le diff y dit quel trou est faux : on additionne, on ne multiplie pas."""
+        # Cinq menus de quatre options : 15 erreurs possibles, pas 1 023.
+        self.assertEqual(ex.answer_space("all_u01_in_nach"), 16)
+        self.assertEqual(scoring.allowance(16), 15)
+        # Les fiches de C gardent le produit des combinaisons.
+        self.assertFalse(ex.PATTERNS["triangle_droite"].per_blank)
+
+    def test_a_fiche_is_marked_one_line_per_menu_rightly(self):
+        """Un mauvais choix n'y change que la ligne de son propre menu."""
+        marquees = [k for k in ex.ALL_KEYS if ex.PATTERNS[k].per_blank]
+        self.assertGreater(len(marquees), 0)
+        for key in marquees:
+            pattern = ex.PATTERNS[key]
+            for params in tirages(pattern):
+                cible = ex.target_rows(key, params)
+                self.assertEqual(len(cible), len(pattern.blanks), key)
+                for rang, (trou, (_label, options)) in \
+                        enumerate(pattern.blanks.items()):
+                    for option in options:
+                        if option.id == pattern.ref[trou]:
+                            continue
+                        selection = dict(pattern.ref, **{trou: option.id})
+                        lignes = ex.build_rows(key, params, selection)
+                        changees = [i for i, (a, b)
+                                    in enumerate(zip(lignes, cible)) if a != b]
+                        with self.subTest(exercice=key, trou=trou,
+                                          choix=option.c):
+                            self.assertEqual(changees, [rang])
+
     def test_every_module_is_described(self):
         for module in ex.MODULES:
             self.assertTrue(module.title.strip(), module.key)

@@ -27,7 +27,7 @@ son rappel et dans l'explication du QCM.
 
 from dataclasses import replace
 
-from ..engine import Module, Pattern, _opts, qcm_pattern
+from ..engine import Module, Pattern, _opts, one_line_per_blank, qcm_pattern
 from .qcm_docker import _tourner
 
 # L'intitulé demandé par l'enseignant, en tête de chaque exercice.
@@ -720,8 +720,11 @@ def _build(rang, question, choices, answer, level, explanation, partie):
 
 FICHES = (PREVENTION, NIVEAUX, PILIERS, DIMENSIONS, CONTINUUM, NOTIONS)
 
-PATTERNS = FICHES + tuple(
-    _build(number + 1, *entree) for number, entree in enumerate(QUESTIONS)
+PATTERNS = one_line_per_blank(
+    FICHES + tuple(
+        _build(number + 1, *entree)
+        for number, entree in enumerate(QUESTIONS)
+    )
 )
 
 MODULE = Module(

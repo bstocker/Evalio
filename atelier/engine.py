@@ -12,7 +12,7 @@ Aucun exercice ici : ils vivent dans atelier/modules/, et
 atelier/exercises.py assemble le catalogue.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Callable
 import hashlib
 import hmac
@@ -100,6 +100,7 @@ class Pattern:
     teacher_note: str = ""                # visible du seul enseignant
     mode: str = "complete"                # complete | predict | debug
     broken: Callable = None               # mode debug : la sortie erronee
+    per_blank: bool = False               # une ligne de sortie par menu
 
 
 def _opts(*triples):
@@ -373,6 +374,17 @@ def qcm_pattern(key, number, question, choices, answer, level=2,
     )
 
 
+def one_line_per_blank(patterns):
+    """Marque les fiches dont chaque menu a sa ligne de sortie.
+
+    Le bareme les compte autrement (cf. `answer_space`). Un test verifie
+    que chaque fiche marquee l'est a raison : un mauvais choix n'y change
+    que la ligne de son propre menu.
+    """
+    return tuple(replace(p, per_blank=True) if p.mode == "complete" else p
+                 for p in patterns)
+
+
 # --------------------------------------------------------------------------
 # Registre
 # --------------------------------------------------------------------------
@@ -416,6 +428,14 @@ def answer_space(key):
     pattern = PATTERNS[key]
     if not pattern.blanks:
         return PREDICT_CHOICES
+    if pattern.per_blank:
+        # Une fiche dont chaque menu a sa propre ligne de sortie : le diff
+        # dit quel trou est faux, et l'eleve corrige les trous un par un.
+        # Ce qu'il peut se tromper, c'est la somme des erreurs de chaque
+        # menu, pas le produit des combinaisons — qui, a cinq menus de
+        # quatre options, rendrait un essai manque presque gratuit.
+        return 1 + sum(len(options) - 1
+                       for _label, options in pattern.blanks.values())
     space = 1
     for _label, options in pattern.blanks.values():
         space *= len(options)

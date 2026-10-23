@@ -22,7 +22,7 @@ diapositives de la séance, numéro et titre compris.
 from dataclasses import replace
 import re
 
-from ..engine import Module, Option, Pattern, qcm_pattern
+from ..engine import Module, Option, Pattern, one_line_per_blank, qcm_pattern
 from .qcm_docker import _tourner
 
 TITLE = "IE3514 - Revision Sheet for Session 5"
@@ -443,7 +443,7 @@ def _question(rang, question, choices, answer, level, section, explanation):
                    lesson=QCM_LESSON)
 
 
-PATTERNS = (
+PATTERNS = one_line_per_blank(
     tuple(_cloze(*entree) for entree in CLOZES)
     + tuple(_question(number + 1, *entree)
             for number, entree in enumerate(QUESTIONS))

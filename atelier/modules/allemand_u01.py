@@ -77,6 +77,7 @@ def trous(key, name, brief, level, rappel, tpl, cases):
                              for trou, label in lignes],
         lesson=(INTITULE,) + LECTURE_TROUS + tuple(rappel),
         level=level,
+        per_blank=True,
     )
 
 

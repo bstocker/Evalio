@@ -22,7 +22,7 @@ L'explication complète n'accompagne que la bonne réponse (cf.
 
 from dataclasses import replace
 
-from ..engine import Module, Option, Pattern, qcm_pattern
+from ..engine import Module, Option, Pattern, one_line_per_blank, qcm_pattern
 from .qcm_docker import _tourner
 
 # En-tête demandé par l'enseignant, en tête de chaque exercice.
@@ -481,7 +481,7 @@ offer and make it legible.""",
 )
 
 
-PATTERNS = QCM + TEXTES
+PATTERNS = one_line_per_blank(QCM + TEXTES)
 
 MODULE = Module(
     key="ie3514_s4",
