@@ -20,7 +20,7 @@ parties sont numérotées comme dans les diapositives (I.3, IV.5…).
 from dataclasses import replace
 import re
 
-from ..engine import Module, Option, Pattern, qcm_pattern
+from ..engine import Module, Option, Pattern, one_line_per_blank, qcm_pattern
 from .qcm_docker import _tourner
 
 # Intitulé demandé par l'enseignant, en tête de chaque exercice : l'élève
@@ -515,8 +515,11 @@ def _question(rang, question, choices, answer, level, explanation, partie):
     return replace(pattern, lesson=_lecon(racines)[:2])
 
 
-PATTERNS = FICHES + tuple(
-    _question(number + 1, *entree) for number, entree in enumerate(QUESTIONS)
+PATTERNS = one_line_per_blank(
+    FICHES + tuple(
+        _question(number + 1, *entree)
+        for number, entree in enumerate(QUESTIONS)
+    )
 )
 
 MODULE = Module(

@@ -130,8 +130,11 @@
   function lossNote(before, after, wasSolved) {
     if (wasSolved) return " Ce motif est déjà validé : rien ne vous est retiré.";
     var lost = before ? Math.max(0, before.worth - after.worth) : after.cost;
-    return lost > 0
-      ? " Cet essai manqué coûte " + points(lost) + "."
+    if (lost > 0) return " Cet essai manqué coûte " + points(lost) + ".";
+    // Un motif a plusieurs menus a des centaines de reponses possibles :
+    // l'essai y coute moins que l'arrondi au centieme, sans le vider.
+    return after.worth > 0
+      ? " Cet essai manqué coûte moins d'un centième de point."
       : " Ce motif ne rapporte plus de points.";
   }
 

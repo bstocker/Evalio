@@ -3086,6 +3086,80 @@ class DockerActionsTest(unittest.TestCase):
         self.assertEqual(places, {"c0", "c1", "c2", "c3"})
 
 
+class AllemandTest(unittest.TestCase):
+    """Chapitre Allemand : chaque erreur reçoit un indice, jamais la réponse."""
+
+    setUp, tearDown = AtelierTest.setUp, AtelierTest.tearDown
+    make_session, join = AtelierTest.make_session, AtelierTest.join
+
+    def module(self):
+        return ex.MODULE_BY_KEY["allemand_u01"]
+
+    def motifs(self):
+        return [ex.PATTERNS[k] for k in self.module().keys]
+
+    def test_the_unit_sits_in_the_german_chapter(self):
+        self.assertEqual(ex.CHAPTER_OF["allemand_u01"].title, "Allemand")
+        self.assertTrue(self.module().title.startswith("Unité 1"))
+        self.assertGreaterEqual(len(self.module().keys), 30)
+        modes = {p.mode for p in self.motifs()}
+        self.assertEqual(modes, {"complete", "qcm"})
+
+    def test_every_wrong_choice_carries_a_hint(self):
+        for pattern in self.motifs():
+            for trou, (_label, options) in pattern.blanks.items():
+                juste = pattern.ref[trou]
+                for option in options:
+                    if option.id == juste:
+                        continue
+                    indice = option.note if pattern.mode == "qcm" \
+                        else option.fn({})
+                    with self.subTest(exercice=pattern.key, choix=option.c):
+                        self.assertTrue(indice.strip())
+
+    def test_a_hint_never_names_the_answer(self):
+        """L'indice explique l'erreur ; nommer la bonne réponse la donnerait."""
+        for pattern in self.motifs():
+            for trou, (_label, options) in pattern.blanks.items():
+                juste = next(o for o in options if o.id == pattern.ref[trou])
+                for option in options:
+                    if option is juste:
+                        continue
+                    indice = option.note if pattern.mode == "qcm" \
+                        else option.fn({})
+                    with self.subTest(exercice=pattern.key, choix=option.c):
+                        self.assertNotIn("« %s »" % juste.c, indice)
+                        if pattern.mode == "qcm":
+                            self.assertNotIn(juste.c, indice)
+
+    def test_a_wrong_answer_returns_its_hint(self):
+        key = "all_u01_q_wer"
+        _, code = self.make_session(patterns=(key,))
+        client, _ = self.join(code)
+        pattern = ex.PATTERNS[key]
+        mauvaise = next(o for o in pattern.blanks["choix"][1]
+                        if o.id != pattern.ref["choix"])
+        res = client.post("/api/task/%s/check" % key,
+                          json={"selection": {"choix": mauvaise.id}}).get_json()
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["note"], mauvaise.note)
+
+    def test_a_wrong_blank_shows_its_hint_in_place_of_the_line(self):
+        key = "all_u01_in_nach"
+        _, code = self.make_session(patterns=(key,))
+        client, _ = self.join(code)
+        pattern = ex.PATTERNS[key]
+        selection = dict(pattern.ref)
+        selection["d1"] = "b"                       # « nach Lyon »
+        res = client.post("/api/task/%s/check" % key,
+                          json={"selection": selection}).get_json()
+        self.assertFalse(res["ok"])
+        fausses = [d for d in res["diff"] if not d["ok"]]
+        self.assertEqual(len(fausses), 1)
+        self.assertIn("direction", fausses[0]["got"])
+        self.assertEqual(fausses[0]["want"], "1 : j'habite à Lyon")
+
+
 class CatalogueTest(unittest.TestCase):
     """Le catalogue doit rester cohérent quand on ajoute des modules."""
 
@@ -3119,6 +3193,36 @@ class CatalogueTest(unittest.TestCase):
             if ex.PATTERNS[key].mode == "predict":
                 with self.subTest(exercice=key):
                     self.assertEqual(ex.answer_space(key), ex.PREDICT_CHOICES)
+
+    def test_a_fiche_with_one_line_per_menu_adds_its_errors(self):
+        """Le diff y dit quel trou est faux : on additionne, on ne multiplie pas."""
+        # Cinq menus de quatre options : 15 erreurs possibles, pas 1 023.
+        self.assertEqual(ex.answer_space("all_u01_in_nach"), 16)
+        self.assertEqual(scoring.allowance(16), 15)
+        # Les fiches de C gardent le produit des combinaisons.
+        self.assertFalse(ex.PATTERNS["triangle_droite"].per_blank)
+
+    def test_a_fiche_is_marked_one_line_per_menu_rightly(self):
+        """Un mauvais choix n'y change que la ligne de son propre menu."""
+        marquees = [k for k in ex.ALL_KEYS if ex.PATTERNS[k].per_blank]
+        self.assertGreater(len(marquees), 0)
+        for key in marquees:
+            pattern = ex.PATTERNS[key]
+            for params in tirages(pattern):
+                cible = ex.target_rows(key, params)
+                self.assertEqual(len(cible), len(pattern.blanks), key)
+                for rang, (trou, (_label, options)) in \
+                        enumerate(pattern.blanks.items()):
+                    for option in options:
+                        if option.id == pattern.ref[trou]:
+                            continue
+                        selection = dict(pattern.ref, **{trou: option.id})
+                        lignes = ex.build_rows(key, params, selection)
+                        changees = [i for i, (a, b)
+                                    in enumerate(zip(lignes, cible)) if a != b]
+                        with self.subTest(exercice=key, trou=trou,
+                                          choix=option.c):
+                            self.assertEqual(changees, [rang])
 
     def test_every_module_is_described(self):
         for module in ex.MODULES:

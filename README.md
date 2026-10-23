@@ -163,7 +163,7 @@ Le catalogue a trois étages : **chapitre → module → exercice**.
 
 Un **chapitre** réunit des modules d'un même domaine. Un **module** porte un titre, un niveau indicatif et un résumé. Chaque **exercice** garde son propre niveau, plus fin, et son mode.
 
-Cinq chapitres aujourd'hui : **Langage C**, **Ligne de commande Linux**, **Réseau** et **Docker**, tous quatre décrits en Python dans `atelier/modules/`, et **QCM**, qui accueille en plus des modules **importés au format Excel** depuis la console (voir **Le chapitre QCM**).
+Sept chapitres aujourd'hui : **Langage C**, **Ligne de commande Linux**, **Réseau**, **Docker**, **Révisions** et **Allemand**, tous décrits en Python dans `atelier/modules/`, et **QCM**, qui accueille en plus des modules **importés au format Excel** depuis la console (voir **Le chapitre QCM**).
 
 **55 exercices de C** répartis en six modules :
 
@@ -286,6 +286,17 @@ Les distracteurs sont de vrais masques — des 1 puis des 0 — voisins de la bo
 Des **questions de cours**, au format du QCM — une question, quatre propositions, une seule juste — et rien au-delà de la première séance : lancer une image en arrière-plan en publiant son port (`docker run -d -p 81:80`), lister les conteneurs, les arrêter, les relancer, les supprimer, les nommer, et trouver une image sur Docker Hub. Les images citées sont celles de la séance : le serveur httpd de quay.io, Tetris et Mario sur Docker Hub.
 
 Chaque bonne réponse a été rejouée sur un vrai démon Docker : le port déjà alloué, le nom déjà pris, le `docker rm` refusé sur un conteneur qui tourne, le conteneur arrêté qui reste dans `docker ps -a`. `DockerTest` veille à ce qu'aucun énoncé, aucune bonne réponse ni aucune explication ne cite une commande Docker non vue en séance ; seules les propositions fausses peuvent en inventer.
+
+### Le chapitre Allemand
+
+Des révisions de langue, une unité par module. **« Unité 1 — Ferien in den DACH-Ländern »** (36 exercices, `atelier/modules/allemand_u01.py`) reprend l'unité 1 d'allemand de 3e : météo et humeur, mots interrogatifs, activités de vacances et leurs lieux, opinion, place du verbe, locatif (in) et directif (nach), mit et le datif, possessifs, verbes forts, sein et haben au prétérit, parfait. Les phrases sont écrites pour l'exercice : le cours en fournit la matière, pas le texte.
+
+Deux formes, et dans les deux **un indice sur chaque erreur, jamais la réponse** :
+
+- 16 **phrases à trous** : la cible dit, pour chaque trou, ce que la phrase doit exprimer (« je vais en Suisse »). Un choix juste reproduit la ligne ; un choix faux affiche à sa place ce qui ne va pas (« nach s'emploie avec un nom de pays sans article ; die Schweiz en a un ») ;
+- 20 **questions** dont chaque proposition fausse porte son indice. C'est un écart voulu avec le QCM Docker, qui laisse les erreurs sans commentaire : ici l'accompagnement a été demandé. Le barème, lui, compte l'essai manqué comme ailleurs.
+
+`AllemandTest` vérifie que chaque mauvais choix a son indice et qu'aucun indice ne cite la bonne réponse.
 
 ### Le chapitre QCM
 
@@ -648,6 +659,9 @@ Un motif à `r` réponses en a `r − 1` de fausses : les avoir toutes essayées
 | Diagnostic (quatre causes) | 4 | ⅓ de sa valeur | 3 essais manqués |
 | Prédiction (texte libre) | — | ⅓ de sa valeur | 3 essais manqués |
 | Question de QCM | 4 | ⅓ de sa valeur | 3 essais manqués |
+| Fiche de révision : cinq menus de quatre options, une ligne par menu | 16 | 1/15 de sa valeur | 15 essais manqués |
+
+**Les fiches de révision font exception** (chapitres Révisions et Allemand). Chaque menu y a sa propre ligne de sortie : le diff dit quel trou est faux, et l'élève corrige les trous un par un. On y compte donc les réponses possibles comme **la somme des erreurs de chaque menu, plus une** — et non le produit des combinaisons, qui, à cinq menus de quatre options, en ferait 1 024 et rendrait un essai manqué presque gratuit. C'est le champ `per_blank` du motif (cf. `one_line_per_blank` dans `atelier/engine.py`) ; un test vérifie que chaque fiche marquée l'est à raison.
 
 La prédiction n'a pas de réponses énumérables : elle reçoit l'allocation d'un menu à quatre options (`PREDICT_CHOICES`, dans `engine.py`), pour que l'acharnement y coûte comme ailleurs.
 
