@@ -21,11 +21,12 @@ from .engine import (  # noqa: F401  — réexportés pour le reste de l'appli
     public_id, public_selection, qcm_pattern, register, render_code,
     shuffled_blanks, specs, substitute, target_rows, unregister,
 )
-from .modules import (allemand_u01, arguments, boucles, chaines, conditions,
-                      docker_actions, docker_bases, ie3514_s1, ie3514_s2,
-                      ie3514_s3, ie3514_s4, ie3514_s5, linux_droits,
-                      linux_fichiers, linux_filtres, linux_shell, qcm_docker,
-                      recursif, reseau_masques, tableaux)
+from .modules import (allemand_u01, allemand_u02, arguments, boucles,
+                      chaines, conditions, docker_actions, docker_bases,
+                      ie3514_s1, ie3514_s2, ie3514_s3, ie3514_s4, ie3514_s5,
+                      linux_droits, linux_fichiers, linux_filtres,
+                      linux_shell, qcm_docker, recursif, reseau_masques,
+                      tableaux)
 
 # Chapitres livrés avec l'application. Le chapitre QCM reçoit en plus, à
 # l'exécution, les modules importés depuis la console (cf. `refresh`).
@@ -75,7 +76,7 @@ BASE_CHAPTERS = (
         summary="Des phrases à trous et des questions pour réviser le cours "
                 "d'allemand, unité par unité. Chaque erreur reçoit un indice "
                 "qui oriente sans donner la réponse.",
-        modules=(allemand_u01.MODULE,),
+        modules=(allemand_u01.MODULE, allemand_u02.MODULE),
         action="Vérifier mes réponses",
     ),
     Chapter(
@@ -93,7 +94,7 @@ for _module in (boucles, conditions, chaines, tableaux, recursif,
                 arguments, linux_fichiers, linux_filtres, linux_droits,
                 linux_shell, reseau_masques, docker_bases, docker_actions,
                 ie3514_s1, ie3514_s2, ie3514_s3, ie3514_s4,
-                ie3514_s5, allemand_u01, qcm_docker):
+                ie3514_s5, allemand_u01, allemand_u02, qcm_docker):
     register(_module.PATTERNS)
 
 # Modules importés actuellement chargés : clé -> Module. Reconstruits par

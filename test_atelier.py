@@ -3092,18 +3092,25 @@ class AllemandTest(unittest.TestCase):
     setUp, tearDown = AtelierTest.setUp, AtelierTest.tearDown
     make_session, join = AtelierTest.make_session, AtelierTest.join
 
-    def module(self):
-        return ex.MODULE_BY_KEY["allemand_u01"]
+    UNITES = ("allemand_u01", "allemand_u02")
 
     def motifs(self):
-        return [ex.PATTERNS[k] for k in self.module().keys]
+        return [ex.PATTERNS[k] for unite in self.UNITES
+                for k in ex.MODULE_BY_KEY[unite].keys]
 
-    def test_the_unit_sits_in_the_german_chapter(self):
-        self.assertEqual(ex.CHAPTER_OF["allemand_u01"].title, "Allemand")
-        self.assertTrue(self.module().title.startswith("Unité 1"))
-        self.assertGreaterEqual(len(self.module().keys), 30)
-        modes = {p.mode for p in self.motifs()}
-        self.assertEqual(modes, {"complete", "qcm"})
+    def test_every_unit_sits_in_the_german_chapter(self):
+        for rang, unite in enumerate(self.UNITES, 1):
+            module = ex.MODULE_BY_KEY[unite]
+            with self.subTest(unite=unite):
+                self.assertEqual(ex.CHAPTER_OF[unite].title, "Allemand")
+                self.assertTrue(module.title.startswith("Unité %d " % rang))
+                self.assertGreaterEqual(len(module.keys), 30)
+                modes = {ex.PATTERNS[k].mode for k in module.keys}
+                self.assertEqual(modes, {"complete", "qcm"})
+                for key in module.keys:
+                    self.assertTrue(key.startswith("all_u%02d_" % rang), key)
+                    self.assertIn("unité %d." % rang,
+                                  ex.PATTERNS[key].lesson[0])
 
     def test_every_wrong_choice_carries_a_hint(self):
         for pattern in self.motifs():
