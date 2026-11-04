@@ -289,12 +289,17 @@ Chaque bonne réponse a été rejouée sur un vrai démon Docker : le port déj�
 
 ### Le chapitre Allemand
 
-Des révisions de langue, une unité par module. **« Unité 1 — Ferien in den DACH-Ländern »** (36 exercices, `atelier/modules/allemand_u01.py`) reprend l'unité 1 d'allemand de 3e : météo et humeur, mots interrogatifs, activités de vacances et leurs lieux, opinion, place du verbe, locatif (in) et directif (nach), mit et le datif, possessifs, verbes forts, sein et haben au prétérit, parfait. Les phrases sont écrites pour l'exercice : le cours en fournit la matière, pas le texte.
+Des révisions de langue, une unité par module, 36 exercices chacune :
+
+- **« Unité 1 — Ferien in den DACH-Ländern »** (`atelier/modules/allemand_u01.py`) : météo et humeur, mots interrogatifs, activités de vacances et leurs lieux, opinion, place du verbe, locatif (in) et directif (nach), mit et le datif, possessifs, verbes forts, sein et haben au prétérit, parfait ;
+- **« Unité 2 — Bei mir zu Hause »** (`atelier/modules/allemand_u02.py`) : la maison, ses étages et ses pièces, ville ou campagne, la chambre et les prépositions de lieu suivies du datif, stehen / liegen / hängen / sitzen, kein, weil et dass, müssen et dürfen, tâches ménagères et verbes à particule, recette et impératif, repas et comparatif, mots composés, tri des déchets, wollen et la proposition (Sollen wir… ?).
+
+Les phrases sont écrites pour l'exercice : le cours en fournit la matière, pas le texte. Les deux fabriques, `trous()` et `question()`, vivent dans `atelier/modules/allemand_commun.py` ; une nouvelle unité n'a qu'à les reprendre avec son intitulé.
 
 Deux formes, et dans les deux **un indice sur chaque erreur, jamais la réponse** :
 
-- 16 **phrases à trous** : la cible dit, pour chaque trou, ce que la phrase doit exprimer (« je vais en Suisse »). Un choix juste reproduit la ligne ; un choix faux affiche à sa place ce qui ne va pas (« nach s'emploie avec un nom de pays sans article ; die Schweiz en a un ») ;
-- 20 **questions** dont chaque proposition fausse porte son indice. C'est un écart voulu avec le QCM Docker, qui laisse les erreurs sans commentaire : ici l'accompagnement a été demandé. Le barème, lui, compte l'essai manqué comme ailleurs.
+- des **phrases à trous** (16 par unité) : la cible dit, pour chaque trou, ce que la phrase doit exprimer (« je vais en Suisse »). Un choix juste reproduit la ligne ; un choix faux affiche à sa place ce qui ne va pas (« nach s'emploie avec un nom de pays sans article ; die Schweiz en a un ») ;
+- des **questions** (20 par unité) dont chaque proposition fausse porte son indice. C'est un écart voulu avec le QCM Docker, qui laisse les erreurs sans commentaire : ici l'accompagnement a été demandé. Le barème, lui, compte l'essai manqué comme ailleurs.
 
 `AllemandTest` vérifie que chaque mauvais choix a son indice et qu'aucun indice ne cite la bonne réponse.
 
