@@ -3167,6 +3167,50 @@ class AllemandTest(unittest.TestCase):
         self.assertEqual(fausses[0]["want"], "1 : j'habite à Lyon")
 
 
+class MngtPrjTest(unittest.TestCase):
+    """Chapitre Mngt_Prj : dix textes à trous, un indice par erreur."""
+
+    MODULE = "mngt_prj_trous"
+
+    def motifs(self):
+        return [ex.PATTERNS[k] for k in ex.MODULE_BY_KEY[self.MODULE].keys]
+
+    def test_ten_texts_in_their_own_chapter(self):
+        self.assertEqual(ex.CHAPTER_OF[self.MODULE].title, "Mngt_Prj")
+        motifs = self.motifs()
+        self.assertEqual(len(motifs), 10)
+        for pattern in motifs:
+            with self.subTest(exercice=pattern.key):
+                self.assertEqual(pattern.mode, "complete")
+                self.assertTrue(pattern.per_blank)
+                self.assertGreaterEqual(len(pattern.blanks), 6)
+                for trou in pattern.blanks:
+                    self.assertIn("@%s@" % trou, pattern.tpl)
+
+    def test_every_menu_has_four_distinct_words(self):
+        for pattern in self.motifs():
+            for trou, (_label, options) in pattern.blanks.items():
+                mots = [o.c for o in options]
+                with self.subTest(exercice=pattern.key, trou=trou):
+                    self.assertEqual(len(mots), 4)
+                    self.assertEqual(len(set(mots)), 4)
+
+    def test_a_hint_never_names_the_answer(self):
+        for pattern in self.motifs():
+            cible = ex.target_rows(pattern.key, {})
+            for rang, (trou, (_label, options)) in \
+                    enumerate(pattern.blanks.items()):
+                juste = next(o for o in options if o.id == pattern.ref[trou])
+                self.assertNotIn(juste.c, cible[rang])
+                for option in options:
+                    if option is juste:
+                        continue
+                    with self.subTest(exercice=pattern.key, choix=option.c):
+                        indice = option.fn({})
+                        self.assertTrue(indice.strip())
+                        self.assertNotIn("« %s »" % juste.c, indice)
+
+
 class CatalogueTest(unittest.TestCase):
     """Le catalogue doit rester cohérent quand on ajoute des modules."""
 

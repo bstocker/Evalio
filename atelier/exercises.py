@@ -25,8 +25,8 @@ from .modules import (allemand_u01, allemand_u02, arguments, boucles,
                       chaines, conditions, docker_actions, docker_bases,
                       ie3514_s1, ie3514_s2, ie3514_s3, ie3514_s4, ie3514_s5,
                       linux_droits, linux_fichiers, linux_filtres,
-                      linux_shell, qcm_docker, recursif, reseau_masques,
-                      tableaux)
+                      linux_shell, mngt_prj_trous, qcm_docker, recursif,
+                      reseau_masques, tableaux)
 
 # Chapitres livrés avec l'application. Le chapitre QCM reçoit en plus, à
 # l'exécution, les modules importés depuis la console (cf. `refresh`).
@@ -80,6 +80,15 @@ BASE_CHAPTERS = (
         action="Vérifier mes réponses",
     ),
     Chapter(
+        key="mngt_prj",
+        title="Mngt_Prj",
+        summary="Des textes à trous pour réviser le cours de management de "
+                "projet SI. Chaque erreur reçoit un indice qui oriente sans "
+                "donner la réponse.",
+        modules=(mngt_prj_trous.MODULE,),
+        action="Vérifier mes réponses",
+    ),
+    Chapter(
         key="qcm",
         title="QCM",
         summary="Des questionnaires à choix unique : une question, quatre "
@@ -94,7 +103,8 @@ for _module in (boucles, conditions, chaines, tableaux, recursif,
                 arguments, linux_fichiers, linux_filtres, linux_droits,
                 linux_shell, reseau_masques, docker_bases, docker_actions,
                 ie3514_s1, ie3514_s2, ie3514_s3, ie3514_s4,
-                ie3514_s5, allemand_u01, allemand_u02, qcm_docker):
+                ie3514_s5, allemand_u01, allemand_u02, mngt_prj_trous,
+                qcm_docker):
     register(_module.PATTERNS)
 
 # Modules importés actuellement chargés : clé -> Module. Reconstruits par
