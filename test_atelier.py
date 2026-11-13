@@ -1418,7 +1418,9 @@ class QcmSectionTest(unittest.TestCase):
         section_id = self.section("Outils")
         self.assertEqual(self.place(section_id, [git, "qcm_docker"]).status_code, 200)
         self.assertEqual(self.grouping()[section_id], [git, "qcm_docker"])
-        self.assertEqual(self.grouping()[None], [])
+        # Les autres modules livrés restent hors section.
+        self.assertNotIn(git, self.grouping()[None])
+        self.assertNotIn("qcm_docker", self.grouping()[None])
         self.place(section_id, ["qcm_docker", git])
         self.assertEqual(self.grouping()[section_id], ["qcm_docker", git])
 
@@ -1430,7 +1432,8 @@ class QcmSectionTest(unittest.TestCase):
         self.assertEqual(grouping[first], [])
         self.assertEqual(grouping[second], ["qcm_docker"])
         self.place(None, ["qcm_docker"])
-        self.assertEqual(self.grouping()[None], ["qcm_docker"])
+        self.assertIn("qcm_docker", self.grouping()[None])
+        self.assertNotIn("qcm_docker", self.grouping()[second])
 
     def test_deleting_a_section_keeps_its_modules(self):
         section_id = self.section("Éphémère")
