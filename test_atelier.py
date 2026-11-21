@@ -3092,7 +3092,7 @@ class AllemandTest(unittest.TestCase):
     setUp, tearDown = AtelierTest.setUp, AtelierTest.tearDown
     make_session, join = AtelierTest.make_session, AtelierTest.join
 
-    UNITES = ("allemand_u01", "allemand_u02")
+    UNITES = ("allemand_u01", "allemand_u02", "allemand_u03")
 
     def motifs(self):
         return [ex.PATTERNS[k] for unite in self.UNITES
