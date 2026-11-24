@@ -3033,7 +3033,7 @@ class DockerTest(unittest.TestCase):
         chapitre = [c for c in ex.CHAPTERS if c.key == "docker"]
         self.assertEqual(len(chapitre), 1)
         self.assertEqual([m.key for m in chapitre[0].modules],
-                         ["docker_bases", "docker_actions"])
+                         ["docker_bases", "docker_actions", "docker_n2"])
         self.assertEqual(ex.chapter_of(self.module().keys[0]).key, "docker")
 
     def test_every_exercise_is_a_course_question(self):
@@ -3084,6 +3084,67 @@ class DockerActionsTest(unittest.TestCase):
     def test_the_right_answers_move_around(self):
         places = {ex.PATTERNS[k].ref["choix"] for k in self.module().keys}
         self.assertEqual(places, {"c0", "c1", "c2", "c3"})
+
+
+class DockerN2Test(unittest.TestCase):
+    """Le module « Exercices Docker N2 » : des sessions, et leurs sorties.
+
+    Les sorties ont été rejouées sur un vrai démon Docker par
+    `outils/verif_docker.py` ; quelques-unes sont recopiées ici, pour
+    qu'une simulation qui dérive se voie sans Docker.
+    """
+
+    def module(self):
+        return ex.MODULE_BY_KEY["docker_n2"]
+
+    def test_fifteen_exercises_in_the_docker_chapter(self):
+        keys = self.module().keys
+        self.assertEqual(len(keys), 15)
+        for key in keys:
+            with self.subTest(exercice=key):
+                self.assertEqual(ex.chapter_of(key).key, "docker")
+                self.assertTrue(key.startswith("dk2_"))
+
+    def test_the_three_requested_modes(self):
+        modes = [ex.PATTERNS[k].mode for k in self.module().keys]
+        self.assertEqual(set(modes), {"complete", "predict", "debug"})
+        self.assertEqual(sorted(set(ex.PATTERNS[k].level
+                                    for k in self.module().keys)),
+                         [1, 2, 3, 4])
+
+    def test_the_chapter_runs_commands(self):
+        self.assertEqual(ex.chapter_of("dk2_monter").action,
+                         "Exécuter la commande")
+
+    def test_every_exercise_shows_a_terminal_session(self):
+        for key in self.module().keys:
+            pattern = ex.PATTERNS[key]
+            with self.subTest(exercice=key):
+                self.assertTrue(pattern.tpl.startswith("$ "))
+                if pattern.mode != "debug":
+                    self.assertIn("session de terminal", pattern.lesson[0])
+
+    def test_outputs_replayed_on_docker(self):
+        p = ex.draw_params("dk2_ecrire", random.Random(0))
+        fichier = p["fichier"]
+        self.assertEqual(
+            ex.build_rows("dk2_ecrire", p, {"vol": "b"}),
+            ["sh: can't create /donnees/%s: Read-only file system" % fichier,
+             "cat: /tmp/site/%s: No such file or directory" % fichier])
+        p = ex.draw_params("dk2_env", random.Random(0))
+        self.assertEqual(ex.build_rows("dk2_env", p, {"opt": "d"}),
+                         ["Cours le mardi en salle"])
+        self.assertEqual(ex.broken_rows("dk2_bug_env", {"g": 0,
+                                                        "salle": "B204"}),
+                         ["Cours en salle $SALLE"])
+
+    def test_only_shared_networks_reach_each_other(self):
+        p = ex.draw_params("dk2_reseaux", random.Random(0))
+        lignes = {l.split(" : ")[0]: l.split(" : ")[1]
+                  for l in ex.target_rows("dk2_reseaux", p)}
+        self.assertEqual(lignes, {"frontend -> backend": "joignable",
+                                  "frontend -> database": "injoignable",
+                                  "database -> backend": "joignable"})
 
 
 class AllemandTest(unittest.TestCase):
