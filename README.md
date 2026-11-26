@@ -196,6 +196,7 @@ Sept chapitres aujourd'hui : **Langage C**, **Ligne de commande Linux**, **Rése
 | Module | Niveau | Questions | Ce qu'il fait travailler |
 | --- | --- | --- | --- |
 | Les conteneurs : premiers pas | ●○○○ | 17 | `docker run -d -p`, `--name`, `docker ps -a`, `stop`, `start`, `rm`, Docker Hub |
+| Sécurisation Docker | ●●●○ | 20 | Trivy (dépendances, image, gating CI/CD), `USER`, `COPY --chown`, `.dockerignore`, build multi-étapes, `HEALTHCHECK` |
 
 **94 exercices de C, de Linux et de réseau** et **17 questions sur Docker**, plus les 15 questions du QCM livré.
 
@@ -286,6 +287,8 @@ Les distracteurs sont de vrais masques — des 1 puis des 0 — voisins de la bo
 Des **questions de cours**, au format du QCM — une question, quatre propositions, une seule juste — et rien au-delà de la première séance : lancer une image en arrière-plan en publiant son port (`docker run -d -p 81:80`), lister les conteneurs, les arrêter, les relancer, les supprimer, les nommer, et trouver une image sur Docker Hub. Les images citées sont celles de la séance : le serveur httpd de quay.io, Tetris et Mario sur Docker Hub.
 
 Chaque bonne réponse a été rejouée sur un vrai démon Docker : le port déjà alloué, le nom déjà pris, le `docker rm` refusé sur un conteneur qui tourne, le conteneur arrêté qui reste dans `docker ps -a`. `DockerTest` veille à ce qu'aucun énoncé, aucune bonne réponse ni aucune explication ne cite une commande Docker non vue en séance ; seules les propositions fausses peuvent en inventer.
+
+Le module **« Sécurisation Docker »** (`docker_securite.py`) suit la séance « Sécurité et audit des images ». Il mêle les quatre modes, du niveau 1 au niveau 4 : 4 Dockerfiles à compléter, 4 prédictions, 4 bugs à expliquer et 8 questions de cours. Ses exercices montrent une session de terminal, comme au chapitre Linux : le Dockerfile (`cat Dockerfile`), une construction rendue muette, puis la commande dont la sortie compte (`id`, `stat`, `ls -A`, `docker inspect`, le code de retour de Trivy). Chaque sortie, pour chaque tirage et chaque choix, a été relevée en construisant les images sur `python:3.13.8-slim-trixie` et en lançant Trivy sur les dépendances de l'atelier. Le chapitre affiche désormais « Exécuter la commande » sur son bouton.
 
 ### Le chapitre Allemand
 
@@ -753,6 +756,7 @@ atelier/
     reseau_commun.py    Ce que les modules Réseau partagent : fiche, calcul bit à bit
     reseau_masques.py
     docker_bases.py     Chapitre Docker : les questions de la première séance
+    docker_securite.py  Chapitre Docker : Trivy et durcissement des images
     qcm_docker.py       Le QCM livré avec l'application
   scoring.py            Barème : valeur d'un motif, essais manqués, pénalités
   student.py            Parcours étudiant et API
