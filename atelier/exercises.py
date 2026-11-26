@@ -23,10 +23,10 @@ from .engine import (  # noqa: F401  — réexportés pour le reste de l'appli
 )
 from .modules import (allemand_u01, allemand_u02, allemand_u03, arguments,
                       boucles, chaines, conditions, docker_actions,
-                      docker_bases, ie3514_s1, ie3514_s2, ie3514_s3,
-                      ie3514_s4, ie3514_s5, linux_droits, linux_fichiers,
-                      linux_filtres, linux_shell, qcm_docker, recursif,
-                      reseau_masques, tableaux)
+                      docker_bases, docker_securite, ie3514_s1, ie3514_s2,
+                      ie3514_s3, ie3514_s4, ie3514_s5, linux_droits,
+                      linux_fichiers, linux_filtres, linux_shell, qcm_docker,
+                      recursif, reseau_masques, tableaux)
 
 # Chapitres livrés avec l'application. Le chapitre QCM reçoit en plus, à
 # l'exécution, les modules importés depuis la console (cf. `refresh`).
@@ -58,7 +58,9 @@ BASE_CHAPTERS = (
         key="docker",
         title="Docker",
         summary="Les conteneurs, module par module.",
-        modules=(docker_bases.MODULE, docker_actions.MODULE),
+        modules=(docker_bases.MODULE, docker_actions.MODULE,
+                 docker_securite.MODULE),
+        action="Exécuter la commande",
     ),
     Chapter(
         key="revisions",
@@ -94,8 +96,8 @@ QCM_CHAPTER_KEY = "qcm"
 for _module in (boucles, conditions, chaines, tableaux, recursif,
                 arguments, linux_fichiers, linux_filtres, linux_droits,
                 linux_shell, reseau_masques, docker_bases, docker_actions,
-                ie3514_s1, ie3514_s2, ie3514_s3, ie3514_s4,
-                ie3514_s5, allemand_u01, allemand_u02, allemand_u03,
+                docker_securite, ie3514_s1, ie3514_s2, ie3514_s3,
+                ie3514_s4, ie3514_s5, allemand_u01, allemand_u02, allemand_u03,
                 qcm_docker):
     register(_module.PATTERNS)
 

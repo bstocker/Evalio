@@ -3033,7 +3033,8 @@ class DockerTest(unittest.TestCase):
         chapitre = [c for c in ex.CHAPTERS if c.key == "docker"]
         self.assertEqual(len(chapitre), 1)
         self.assertEqual([m.key for m in chapitre[0].modules],
-                         ["docker_bases", "docker_actions"])
+                         ["docker_bases", "docker_actions",
+                          "docker_securite"])
         self.assertEqual(ex.chapter_of(self.module().keys[0]).key, "docker")
 
     def test_every_exercise_is_a_course_question(self):
@@ -3084,6 +3085,44 @@ class DockerActionsTest(unittest.TestCase):
     def test_the_right_answers_move_around(self):
         places = {ex.PATTERNS[k].ref["choix"] for k in self.module().keys}
         self.assertEqual(places, {"c0", "c1", "c2", "c3"})
+
+
+class DockerSecuriteTest(unittest.TestCase):
+    """Le module « Sécurisation Docker » : les quatre modes, tous niveaux."""
+
+    def motifs(self):
+        return [ex.PATTERNS[k]
+                for k in ex.MODULE_BY_KEY["docker_securite"].keys]
+
+    def test_twenty_exercises_in_the_docker_chapter(self):
+        motifs = self.motifs()
+        self.assertEqual(len(motifs), 20)
+        for pattern in motifs:
+            with self.subTest(exercice=pattern.key):
+                self.assertTrue(pattern.key.startswith("dk_secu_"))
+                self.assertEqual(ex.chapter_of(pattern.key).key, "docker")
+
+    def test_every_mode_and_every_level(self):
+        motifs = self.motifs()
+        self.assertEqual({p.mode for p in motifs},
+                         {"complete", "predict", "debug", "qcm"})
+        self.assertEqual({p.level for p in motifs}, set(ex.LEVELS))
+
+    def test_every_session_explains_how_to_read_itself(self):
+        for pattern in self.motifs():
+            if pattern.mode == "qcm":
+                continue
+            with self.subTest(exercice=pattern.key):
+                self.assertTrue(pattern.tpl.startswith("$ "))
+                self.assertIn("session de terminal", pattern.lesson[0])
+
+    def test_the_right_answers_move_around(self):
+        places = {p.ref["choix"] for p in self.motifs() if p.mode == "qcm"}
+        self.assertEqual(places, {"c0", "c1", "c2", "c3"})
+
+    def test_the_run_button_speaks_of_commands(self):
+        self.assertEqual(ex.chapter_of("dk_secu_user").action,
+                         "Exécuter la commande")
 
 
 class AllemandTest(unittest.TestCase):
